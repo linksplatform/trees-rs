@@ -1,5 +1,5 @@
 [package]
-name = "platform-treesmethods"
+name = "platform-trees"
 version = "0.1.0-beta.1"
 edition = "2018"
 authors = ["uselesssgoddess", "Linksplatform Team <linksplatformtechnologies@gmail.com>"]
@@ -12,4 +12,4 @@ Trees methods for linksplatform
 
 [dependencies]
 funty = "2.0"
-platform-data = "0.1.0-beta.3"
+platform-data = { version = "0.1.0-beta.3", path = "../data-rs" }
