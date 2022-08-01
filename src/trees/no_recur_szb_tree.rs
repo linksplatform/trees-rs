@@ -1,7 +1,5 @@
 use platform_data::LinkType;
 
-
-
 use crate::SzbTree;
 
 pub trait NoRecurSzbTree<T: LinkType>: SzbTree<T> {
