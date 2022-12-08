@@ -10,6 +10,8 @@ description = """
 Trees methods for linksplatform
 """
 
+rust-version = "1.65"
+
 [dependencies]
 funty = "2.0"
-platform-data = { version = "0.1.0-beta.3", path = "../data-rs" }
+platform-data = { version = "0.1.0-beta.3", git = "https://github.com/linksplatform/core-rs", branch = "feature/modern-api"}
