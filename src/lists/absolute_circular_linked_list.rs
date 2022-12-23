@@ -28,7 +28,7 @@ pub trait AbsoluteCircularLinkedList<T: LinkType>: AbsoluteLinkedList<T> {
 
     fn attach_as_first(&mut self, element: T) {
         let first = self.get_first();
-        if first == T::funty(0) {
+        if first == T::zero() {
             self.set_first(element);
             self.set_last(element);
             self.set_previous(element, element);
@@ -41,7 +41,7 @@ pub trait AbsoluteCircularLinkedList<T: LinkType>: AbsoluteLinkedList<T> {
 
     fn attach_as_last(&mut self, element: T) {
         let last = self.get_last();
-        if last == T::funty(0) {
+        if last == T::zero() {
             self.attach_as_first(element);
         } else {
             self.attach_after(last, element);
@@ -52,8 +52,8 @@ pub trait AbsoluteCircularLinkedList<T: LinkType>: AbsoluteLinkedList<T> {
         let element_previous = self.get_previous(element);
         let element_next = self.get_next(element);
         if element_next == element {
-            self.set_first(T::funty(0));
-            self.set_last(T::funty(0));
+            self.set_first(T::zero());
+            self.set_last(T::zero());
         } else {
             self.set_next(element_previous, element_next);
             self.set_previous(element_next, element_previous);
@@ -64,8 +64,8 @@ pub trait AbsoluteCircularLinkedList<T: LinkType>: AbsoluteLinkedList<T> {
                 self.set_last(element_previous);
             }
         }
-        self.set_previous(element, T::funty(0));
-        self.set_next(element, T::funty(0));
+        self.set_previous(element, T::zero());
+        self.set_next(element, T::zero());
         self.dec_size();
     }
 }
