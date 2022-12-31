@@ -20,6 +20,6 @@ platform-data = { version = "0.1.0-beta.3", git = "https://github.com/linksplatf
 [dev-dependencies]
 criterion = "0.4.0"
 
-[[benches]]
+[[bench]]
 name = "bench"
 harness = false

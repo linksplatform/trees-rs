@@ -52,15 +52,21 @@ impl<T: LinkType> SzbTree<T> for Storage<T> {
     }
 
     unsafe fn set_left(&mut self, node: T, left: T) {
-        self.store.get_mut(node.as_usize()).unwrap().left = left;
+        if let Some(value) = self.store.get_mut(node.as_usize()) {
+            value.left = left
+        }
     }
 
     unsafe fn set_right(&mut self, node: T, right: T) {
-        self.store.get_mut(node.as_usize()).unwrap().right = right;
+        if let Some(value) = self.store.get_mut(node.as_usize()) {
+            value.right = right
+        }
     }
 
     unsafe fn set_size(&mut self, node: T, size: T) {
-        self.store.get_mut(node.as_usize()).unwrap().size = size;
+        if let Some(value) = self.store.get_mut(node.as_usize()) {
+            value.size = size
+        }
     }
 
     unsafe fn first_is_to_the_left_of_second(&self, first: T, second: T) -> bool {

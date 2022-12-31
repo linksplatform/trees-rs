@@ -6,10 +6,10 @@ use trees_bench::{Basic, Storage, Storage2, Storage3};
 mod trees_bench;
 
 pub fn old_trees(c: &mut Criterion) {
-    let mut tree = Storage::<usize>::new(100);
-    let mut root = None;
     c.bench_function("create_nodes_old", |b| {
         b.iter(|| {
+            let mut tree = Storage::<usize>::new(100);
+            let mut root = None;
             for node in 2..=100 {
                 tree.add(&mut root, node)
             }
@@ -18,10 +18,10 @@ pub fn old_trees(c: &mut Criterion) {
 }
 
 pub fn new_trees(c: &mut Criterion) {
-    let mut tree = Storage2::<usize>::new(100);
-    let mut root = None;
     c.bench_function("create_nodes_new", |b| {
         b.iter(|| {
+            let mut tree = Storage2::<usize>::new(100);
+            let mut root = None;
             for node in 2..=100 {
                 tree.add(&mut root, node);
             }
@@ -30,10 +30,10 @@ pub fn new_trees(c: &mut Criterion) {
 }
 
 pub fn new_new_trees(c: &mut Criterion) {
-    let mut tree = Storage3::<usize>::new(100);
-    let mut root = None;
     c.bench_function("create_nodes_new_new", |b| {
         b.iter(|| {
+            let mut tree = Storage3::<usize>::new(100);
+            let mut root = None;
             for node in 2..=100 {
                 tree.add(&mut root, node);
             }
