@@ -48,7 +48,11 @@ impl<T: LinkType> SzbTree<T> for Storage<T> {
     }
 
     unsafe fn get_size(&self, node: T) -> T {
-        self.store.get(node.as_usize()).unwrap().size
+        if let Some(value) = self.store.get(node.as_usize()) {
+            value.size
+        } else {
+            T::zero()
+        }
     }
 
     unsafe fn set_left(&mut self, node: T, left: T) {
