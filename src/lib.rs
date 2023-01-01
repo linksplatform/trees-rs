@@ -1,5 +1,5 @@
+#![feature(let_else)]
 // fixme: #![no_std]
-
 #![deny(clippy::all, clippy::perf)]
 //#![deny(unused_must_use)]
 #![allow(clippy::unit_arg)]

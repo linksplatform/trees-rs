@@ -8,53 +8,49 @@ where
     Tree: NewNewTree,
 {
     loop {
-        let left = Tree::left(slice, root);
         let right = Tree::right(slice, root);
         if Tree::is_left_of(slice, idx, root) {
-            match left {
-                None => {
-                    Tree::inc_size(slice, root)?;
-                    Tree::set_size(slice, idx, 1);
-                    Tree::set_left(slice, root, Some(idx));
-                    return Some(root);
+            let Some(left) = Tree::left(slice, root) else {
+                Tree::inc_size(slice, root);
+                Tree::set_size(slice, idx, 1);
+                Tree::set_left(slice, root, Some(idx));
+                return Some(root);
+            };
+            
+            let left_size = Tree::size(slice, left)?;
+            let right_size = Tree::right_size(slice, root).unwrap_or_default();
+            if Tree::is_left_of(slice, idx, left) {
+                if left_size >= right_size {
+                    root = Tree::rotate_right(slice, root)?;
+                } else {
+                    Tree::inc_size(slice, root);
+                    root = left;
                 }
-                Some(left) => {
-                    let left_size = Tree::size(slice, left)?;
-                    let right_size = Tree::right_size(slice, root).unwrap_or_default();
-                    if Tree::is_left_of(slice, idx, left) {
-                        if left_size >= right_size {
-                            root = Tree::rotate_right(slice, root)?;
-                        } else {
-                            Tree::inc_size(slice, root)?;
-                            root = left;
-                        }
+            } else {
+                let lr_size =
+                    Tree::right(slice, left).and_then(|right| Tree::size(slice, right))?;
+                if lr_size >= right_size {
+                    if lr_size == 0 && right_size == 0 {
+                        Tree::set_left(slice, idx, Some(left));
+                        Tree::set_right(slice, idx, Some(root));
+                        Tree::set_size(slice, idx, left_size + 2);
+                        Tree::set_left(slice, root, None);
+                        Tree::set_size(slice, root, 1);
+                        return Some(root);
                     } else {
-                        let lr_size =
-                            Tree::right(slice, left).and_then(|right| Tree::size(slice, right))?;
-                        if lr_size >= right_size {
-                            if lr_size == 0 && right_size == 0 {
-                                Tree::set_left(slice, idx, Some(left));
-                                Tree::set_right(slice, idx, Some(root));
-                                Tree::set_size(slice, idx, left_size + 2);
-                                Tree::set_left(slice, root, None);
-                                Tree::set_size(slice, root, 1);
-                                return Some(root);
-                            } else {
-                                let new = Tree::rotate_left(slice, left)?;
-                                Tree::set_left(slice, root, Some(new));
-                                root = Tree::rotate_right(slice, root)?;
-                            }
-                        } else {
-                            Tree::inc_size(slice, root)?;
-                            root = left;
-                        }
+                        let new = Tree::rotate_left(slice, left)?;
+                        Tree::set_left(slice, root, Some(new));
+                        root = Tree::rotate_right(slice, root)?;
                     }
+                } else {
+                    Tree::inc_size(slice, root);
+                    root = left;
                 }
             }
         } else {
             match right {
                 None => {
-                    Tree::inc_size(slice, root)?;
+                    Tree::inc_size(slice, root);
                     Tree::set_size(slice, idx, 1);
                     Tree::set_right(slice, root, Some(idx));
                     return Some(root);
@@ -64,14 +60,9 @@ where
                     let left_size = Tree::left_size(slice, root).unwrap_or_default();
                     if Tree::is_right_of(slice, idx, right) {
                         if right_size >= left_size {
-                            println!("ri: {right}");
-                            println!("idx: {idx}");
-                            println!("r: {right_size}");
-                            println!("l: {left_size}");
-                            println!("magic: {}", Tree::is_right_of(slice, idx, right));
                             root = Tree::rotate_left(slice, root)?;
                         } else {
-                            Tree::inc_size(slice, root)?;
+                            Tree::inc_size(slice, root);
                             root = right;
                         }
                     } else {
@@ -91,7 +82,7 @@ where
                                 root = Tree::rotate_left(slice, root)?;
                             }
                         } else {
-                            Tree::inc_size(slice, root)?;
+                            Tree::inc_size(slice, root);
                             root = right;
                         }
                     }

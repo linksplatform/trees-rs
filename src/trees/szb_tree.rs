@@ -11,6 +11,16 @@ macro_rules! tri {
     };
 }
 
+macro_rules! fn_set {
+    ($($name:ident => $set:ident: $ty:ty)*) => {
+        $(
+            fn $name(slice: &mut [Self::Item], idx: usize, $set: $ty) {
+                Self::_get(slice, idx).map(|node| Self::_set(slice, idx, Node { $set, ..node }));
+            }
+        )*
+    };
+}
+
 pub struct Node {
     pub size: usize,
     pub left: Option<usize>,
@@ -43,40 +53,17 @@ pub trait NewNewTree {
         Self::_get(slice, idx)?.right
     }
 
-    fn set_size(slice: &mut [Self::Item], idx: usize, size: usize) -> Option<()> {
-        Self::_set(
-            slice,
-            idx,
-            Node {
-                size,
-                ..Self::_get(slice, idx)?
-            },
-        )
-        .pipe(Some)
+    fn_set! {
+        set_size => size: usize
+        set_left => left: Option<usize>
+        set_right => right: Option<usize>
     }
 
-    fn set_left(slice: &mut [Self::Item], idx: usize, left: Option<usize>) -> Option<()> {
-        Self::_set(
-            slice,
-            idx,
-            Node {
-                left,
-                ..Self::_get(slice, idx)?
-            },
-        )
-        .pipe(Some)
-    }
-
-    fn set_right(slice: &mut [Self::Item], idx: usize, right: Option<usize>) -> Option<()> {
-        Self::_set(
-            slice,
-            idx,
-            Node {
-                right,
-                ..Self::_get(slice, idx)?
-            },
-        )
-        .pipe(Some)
+    fn push_left(slice: &mut [Self::Item], root: usize, idx: usize) {
+        if Self::left(slice, root).is_none() {
+            Self::inc_size(slice, root);
+        }
+        Self::set_left(slice, root, Some(idx));
     }
 
     fn is_left_of(slice: &[Self::Item], first: usize, second: usize) -> bool;
@@ -135,18 +122,15 @@ pub trait NewNewTree {
         }
     }
 
-    #[must_use]
-    fn inc_size(slice: &mut [Self::Item], idx: usize) -> Option<()> {
-        Self::set_size(slice, idx, Self::size(slice, idx)? + 1)
+    fn inc_size(slice: &mut [Self::Item], idx: usize) {
+        Self::size(slice, idx).map(|size| Self::set_size(slice, idx, size + 1));
     }
 
-    #[must_use]
-    fn dec_size(slice: &mut [Self::Item], idx: usize) -> Option<()> {
-        Self::set_size(slice, idx, Self::size(slice, idx)? - 1)
+    fn dec_size(slice: &mut [Self::Item], idx: usize) {
+        Self::size(slice, idx).map(|size| Self::set_size(slice, idx, size - 1));
     }
 
-    #[must_use]
-    fn fix_size(slice: &mut [Self::Item], idx: usize) -> Option<()> {
+    fn fix_size(slice: &mut [Self::Item], idx: usize) {
         Self::set_size(
             slice,
             idx,
@@ -162,23 +146,21 @@ pub trait NewNewTree {
         Self::set_size(slice, idx, 0);
     }
 
-    #[must_use]
     fn rotate_left(slice: &mut [Self::Item], root: usize) -> Option<usize> {
         let right = Self::right(slice, root)?;
         Self::left(slice, right).map(|left| Self::set_right(slice, root, Some(left)));
         Self::set_left(slice, right, Some(root));
         Self::set_size(slice, right, Self::size(slice, root)?);
-        Self::fix_size(slice, root)?;
+        Self::fix_size(slice, root);
         Some(right)
     }
 
-    #[must_use]
     fn rotate_right(slice: &mut [Self::Item], root: usize) -> Option<usize> {
         let left = Self::left(slice, root)?;
         Self::right(slice, left).map(|right| Self::set_left(slice, root, Some(right)));
         Self::set_right(slice, left, Some(root));
         Self::set_size(slice, left, Self::size(slice, root)?);
-        Self::fix_size(slice, root)?;
+        Self::fix_size(slice, root);
         Some(left)
     }
 }
