@@ -1,7 +1,7 @@
 #![feature(default_free_fn)]
 
-use crate::dummy::{Dummy, Dummy2, DummySzb, Node2};
-use platform_trees::{NewNewNoRecur, NewNoRecur, NewTree, NoRecurSzbTree, SzbTree};
+use crate::dummy::{Dummy, DummySzb, Node2};
+use platform_trees::{new, new_v2, NoRecurSzbTree, SzbTree};
 
 mod dummy;
 
@@ -17,49 +17,54 @@ fn basic() {
         tree.attach(&mut root, 4);
 
         assert!(tree.contains(3, root));
-        println!("----------");
         assert!(!tree.contains(5, root));
 
-        println!("{:?}", tree);
+        println!("{root:?}");
+        println!("{tree:#?}");
     }
 }
 
 #[test]
+#[should_panic]
 fn new() {
     let mut tree: Vec<_> = (0..30).map(|_| Node2::<usize>::default()).collect();
     let slice = tree.as_mut_slice();
 
     let mut root = None;
 
-    root = Dummy2::attach(slice, root, 2);
-    root = Dummy2::attach(slice, root, 3);
-    root = Dummy2::attach(slice, root, 4);
+    use new::{NoRecur, Tree};
+
+    root = Dummy::attach(slice, root, 2);
+    root = Dummy::attach(slice, root, 3);
+    root = Dummy::attach(slice, root, 4);
 
     let root = root.unwrap();
 
     assert!(Dummy::is_contains(slice, root, 3));
     assert!(!Dummy::is_contains(slice, root, 5));
 
-    println!("{:?}", root);
-    println!("{:#?}", tree);
+    println!("{root:?}");
+    println!("{tree:#?}");
 }
 
 #[test]
-fn new2() {
+fn new_v2() {
     let mut tree: Vec<_> = (0..30).map(|_| Node2::<usize>::default()).collect();
     let slice = tree.as_mut_slice();
 
     let mut root = None;
 
-    root = Dummy2::attach(slice, root, 2);
-    root = Dummy2::attach(slice, root, 3);
-    root = Dummy2::attach(slice, root, 4);
+    use new_v2::{NoRecur, Tree};
+
+    root = Dummy::attach(slice, root, 2);
+    root = Dummy::attach(slice, root, 3);
+    root = Dummy::attach(slice, root, 4);
 
     let root = root.unwrap();
 
     assert!(Dummy::is_contains(slice, root, 3));
     assert!(!Dummy::is_contains(slice, root, 5));
 
-    println!("{:?}", root);
-    println!("{:#?}", tree);
+    println!("{root:?}");
+    println!("{tree:#?}");
 }

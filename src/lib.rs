@@ -12,4 +12,4 @@ pub use lists::{
     RelativeLinkedList,
 };
 
-pub use trees::{NewNewNoRecur, NewNewTree, NewNoRecur, NewTree, NoRecurSzbTree, Node, SzbTree};
+pub use trees::{new, new_v2, NoRecurSzbTree, SzbTree};
