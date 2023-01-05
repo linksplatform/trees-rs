@@ -17,7 +17,9 @@ pub trait Tree {
     }
 
     fn _set(slice: &mut [Self::Item], idx: usize, node: Node) {
-        slice.get_mut(idx).map(|val| Self::set(val, node));
+        if let Some(val) = slice.get_mut(idx) {
+            Self::set(val, node)
+        }
     }
 
     fn size(slice: &[Self::Item], idx: usize) -> Option<usize> {
@@ -101,11 +103,15 @@ pub trait Tree {
     }
 
     fn inc_size(slice: &mut [Self::Item], idx: usize) {
-        Self::size(slice, idx).map(|size| Self::set_size(slice, idx, size + 1));
+        if let Some(size) = Self::size(slice, idx) {
+            Self::set_size(slice, idx, size + 1)
+        }
     }
 
     fn dec_size(slice: &mut [Self::Item], idx: usize) {
-        Self::size(slice, idx).map(|size| Self::set_size(slice, idx, size - 1));
+        if let Some(size) = Self::size(slice, idx) {
+            Self::set_size(slice, idx, size - 1)
+        }
     }
 
     fn fix_size(slice: &mut [Self::Item], idx: usize) {
@@ -126,7 +132,9 @@ pub trait Tree {
 
     fn rotate_left(slice: &mut [Self::Item], root: usize) -> Option<usize> {
         let right = Self::right(slice, root)?;
-        Self::left(slice, right).map(|left| Self::set_right(slice, root, Some(left)));
+        if let Some(left) = Self::left(slice, right) {
+            Self::set_right(slice, root, Some(left))
+        }
         Self::set_left(slice, right, Some(root));
         Self::set_size(slice, right, Self::size(slice, root)?);
         Self::fix_size(slice, root);
@@ -135,7 +143,9 @@ pub trait Tree {
 
     fn rotate_right(slice: &mut [Self::Item], root: usize) -> Option<usize> {
         let left = Self::left(slice, root)?;
-        Self::right(slice, left).map(|right| Self::set_left(slice, root, Some(right)));
+        if let Some(right) = Self::right(slice, left) {
+            Self::set_left(slice, root, Some(right))
+        }
         Self::set_right(slice, left, Some(root));
         Self::set_size(slice, left, Self::size(slice, root)?);
         Self::fix_size(slice, root);

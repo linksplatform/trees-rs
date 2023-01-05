@@ -26,10 +26,6 @@ impl<T: LinkType> DummySzb<T> {
         }
     }
 
-    pub fn as_mut_slice(&mut self) -> &mut [Node<T>] {
-        self.place.as_mut_slice()
-    }
-
     fn get(&self, index: T) -> Option<&Node<T>> {
         self.place.get(index.as_usize())
     }
@@ -94,7 +90,7 @@ impl<T: LinkType> NoRecurSzbTree<T> for DummySzb<T> {}
 macro_rules! ignore {
     ($($tt:tt)*) => {
         let _ = (|| -> Option<_> {
-            $($tt)*;
+            $($tt)*
             Some(())
         })();
     };
@@ -130,7 +126,7 @@ impl<T: LinkType> new::Tree<T> for Dummy<T> {
     fn set_size(slice: &mut [Self::Item], idx: T, value: T) {
         let idx = idx.as_usize();
         ignore! {
-            slice.get_mut(idx)?.size = value
+            slice.get_mut(idx)?.size = value;
         }
     }
 

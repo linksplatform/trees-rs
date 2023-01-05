@@ -67,24 +67,22 @@ pub trait Tree<T: LinkType> {
         }
     }
 
-    #[must_use]
     fn inc_size(slice: &mut [Self::Item], idx: T) -> Option<()> {
         Self::set_size(slice, idx, Self::size(slice, idx)? + T::one()).pipe(Some)
     }
 
-    #[must_use]
     fn dec_size(slice: &mut [Self::Item], idx: T) -> Option<()> {
         Self::set_size(slice, idx, Self::size(slice, idx)? - T::one()).pipe(Some)
     }
 
-    #[must_use]
-    fn fix_size(slice: &mut [Self::Item], idx: T) -> Option<()> {
+    fn fix_size(slice: &mut [Self::Item], idx: T) {
         Self::set_size(
             slice,
             idx,
-            Self::left_size(slice, idx)? + Self::right_size(slice, idx)? + T::one(),
+            Self::left_size(slice, idx).unwrap_or_default()
+                + Self::right_size(slice, idx).unwrap_or_default()
+                + T::one(),
         )
-        .pipe(Some)
     }
 
     fn clear(slice: &mut [Self::Item], idx: T) {
@@ -93,23 +91,25 @@ pub trait Tree<T: LinkType> {
         Self::set_size(slice, idx, T::zero());
     }
 
-    #[must_use]
     fn rotate_left(slice: &mut [Self::Item], root: T) -> Option<T> {
         let right = Self::right(slice, root)?;
-        Self::left(slice, right).map(|left| Self::set_right(slice, root, Some(left)));
+        if let Some(left) = Self::left(slice, right) {
+            Self::set_right(slice, root, Some(left))
+        }
         Self::set_left(slice, right, Some(root));
         Self::set_size(slice, right, Self::size(slice, root)?);
-        Self::fix_size(slice, root)?;
+        Self::fix_size(slice, root);
         Some(right)
     }
 
-    #[must_use]
     fn rotate_right(slice: &mut [Self::Item], root: T) -> Option<T> {
         let left = Self::left(slice, root)?;
-        Self::right(slice, left).map(|right| Self::set_left(slice, root, Some(right)));
+        if let Some(right) = Self::right(slice, left) {
+            Self::set_left(slice, root, Some(right))
+        }
         Self::set_right(slice, left, Some(root));
         Self::set_size(slice, left, Self::size(slice, root)?);
-        Self::fix_size(slice, root)?;
+        Self::fix_size(slice, root);
         Some(left)
     }
 }

@@ -7,10 +7,10 @@ mod dummy;
 
 #[test]
 fn basic() {
-    let mut tree = DummySzb::<usize>::new(234);
+    let mut tree = DummySzb::<usize>::new(5);
 
     unsafe {
-        let mut root = 1;
+        let mut root = 0;
 
         tree.attach(&mut root, 2);
         tree.attach(&mut root, 3);
@@ -25,9 +25,8 @@ fn basic() {
 }
 
 #[test]
-#[should_panic]
 fn new() {
-    let mut tree: Vec<_> = (0..30).map(|_| Node2::<usize>::default()).collect();
+    let mut tree: Vec<_> = (0..5).map(|_| Node2::<usize>::default()).collect();
     let slice = tree.as_mut_slice();
 
     let mut root = None;
@@ -49,7 +48,7 @@ fn new() {
 
 #[test]
 fn new_v2() {
-    let mut tree: Vec<_> = (0..30).map(|_| Node2::<usize>::default()).collect();
+    let mut tree: Vec<_> = (0..5).map(|_| Node2::<usize>::default()).collect();
     let slice = tree.as_mut_slice();
 
     let mut root = None;
