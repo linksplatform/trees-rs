@@ -2,6 +2,8 @@
 
 use platform_data::LinkType;
 use platform_trees::{new, new_v2, NoRecurSzbTree, SzbTree};
+use quickcheck::{Arbitrary, Gen};
+use std::collections::HashSet;
 use std::convert::TryInto;
 use std::default::default;
 use std::marker::PhantomData;
@@ -179,3 +181,14 @@ impl<T: LinkType + From<usize>> new_v2::Tree for Dummy<T> {
 }
 
 impl<T: LinkType + From<usize>> new_v2::NoRecur for Dummy<T> {}
+
+#[derive(Clone, Debug)]
+pub struct Simplifier<T>(pub Vec<T>);
+
+impl<T: LinkType + Arbitrary> Arbitrary for Simplifier<T> {
+    fn arbitrary(g: &mut Gen) -> Self {
+        let mut nodes = HashSet::<T>::arbitrary(g);
+        nodes.remove(&T::zero());
+        Simplifier(nodes.iter().map(|node| *node).collect())
+    }
+}
