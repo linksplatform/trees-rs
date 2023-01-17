@@ -1,4 +1,4 @@
-#![feature(let_else)]
+#![feature(default_free_fn)]
 // fixme: #![no_std]
 #![deny(clippy::all, clippy::perf)]
 //#![deny(unused_must_use)]
@@ -13,3 +13,9 @@ pub use lists::{
 };
 
 pub use trees::{new, new_v2, NoRecurSzbTree, SzbTree};
+
+#[cfg(any(new_api, test))]
+pub mod inner;
+
+#[cfg(any(new_api, test))]
+pub use inner::{BTree, New, NewV2, OldStore, Store};

@@ -93,9 +93,7 @@ pub trait Tree<T: LinkType> {
 
     fn rotate_left(slice: &mut [Self::Item], root: T) -> Option<T> {
         let right = Self::right(slice, root)?;
-        if let Some(left) = Self::left(slice, right) {
-            Self::set_right(slice, root, Some(left))
-        }
+        Self::set_right(slice, root, Self::left(slice, right));
         Self::set_left(slice, right, Some(root));
         Self::set_size(slice, right, Self::size(slice, root)?);
         Self::fix_size(slice, root);
@@ -104,9 +102,7 @@ pub trait Tree<T: LinkType> {
 
     fn rotate_right(slice: &mut [Self::Item], root: T) -> Option<T> {
         let left = Self::left(slice, root)?;
-        if let Some(right) = Self::right(slice, left) {
-            Self::set_left(slice, root, Some(right))
-        }
+        Self::set_left(slice, root, Self::right(slice, left));
         Self::set_right(slice, left, Some(root));
         Self::set_size(slice, left, Self::size(slice, root)?);
         Self::fix_size(slice, root);
@@ -141,8 +137,9 @@ where
                             root = left;
                         }
                     } else {
-                        let lr_size =
-                            Tree::right(slice, left).and_then(|right| Tree::size(slice, right))?;
+                        let lr_size = Tree::right(slice, left)
+                            .and_then(|right| Tree::size(slice, right))
+                            .unwrap_or_default();
                         if lr_size >= right_size {
                             if lr_size == T::zero() && right_size == T::zero() {
                                 Tree::set_left(slice, idx, Some(left));
@@ -150,7 +147,7 @@ where
                                 Tree::set_size(slice, idx, left_size + T::two());
                                 Tree::set_left(slice, root, None);
                                 Tree::set_size(slice, root, T::one());
-                                return Some(root);
+                                return Some(idx);
                             } else {
                                 let new = Tree::rotate_left(slice, left)?;
                                 Tree::set_left(slice, root, Some(new));
@@ -182,8 +179,9 @@ where
                             root = right;
                         }
                     } else {
-                        let rl_size =
-                            Tree::left(slice, right).and_then(|left| Tree::size(slice, left))?;
+                        let rl_size = Tree::left(slice, right)
+                            .and_then(|left| Tree::size(slice, left))
+                            .unwrap_or_default();
                         if rl_size >= left_size {
                             if rl_size == T::zero() && left_size == T::zero() {
                                 Tree::set_left(slice, idx, Some(root));
@@ -191,7 +189,7 @@ where
                                 Tree::set_size(slice, idx, right_size + T::two());
                                 Tree::set_left(slice, root, None);
                                 Tree::set_size(slice, root, T::one());
-                                return Some(root);
+                                return Some(idx);
                             } else {
                                 let new = Tree::rotate_right(slice, right)?;
                                 Tree::set_right(slice, root, Some(new));
@@ -218,7 +216,7 @@ pub trait NoRecur<T: LinkType>: Tree<T> + Sized {
         }
     }
 
-    fn detach(slice: &mut [Self::Item], root: Option<T>, idx: T) -> Option<T> {
+    fn detach(_slice: &mut [Self::Item], _root: Option<T>, _idx: T) -> Option<T> {
         todo!()
     }
 }

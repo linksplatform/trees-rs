@@ -1,10 +1,8 @@
 #![feature(default_free_fn)]
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use inner::{BTree, New, NewV2, OldStore, Store};
+use platform_trees::{BTree, New, NewV2, OldStore, Store};
 use std::default::default;
-
-mod inner;
 
 fn reset<T: Default>(slice: &mut [T]) {
     for item in slice {
@@ -21,7 +19,7 @@ pub fn bench(c: &mut Criterion) {
             reset(&mut place);
             let mut root = None;
             for i in 2..=MAGIC {
-                place.add(&mut root, i)
+                place._attach(&mut root, i)
             }
         })
     });
@@ -32,7 +30,7 @@ pub fn bench(c: &mut Criterion) {
             reset(&mut place);
             let mut root = None;
             for i in 2..=MAGIC {
-                place.add(&mut root, i);
+                place._attach(&mut root, i);
             }
         })
     });
@@ -43,7 +41,7 @@ pub fn bench(c: &mut Criterion) {
             reset(&mut place);
             let mut root = None;
             for i in 2..=MAGIC {
-                place.add(&mut root, i);
+                place._attach(&mut root, i);
             }
         })
     });

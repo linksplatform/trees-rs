@@ -1,16 +1,15 @@
-use std::convert::{TryFrom, TryInto};
-use std::default::default;
-use std::fmt::Debug;
-use std::ops::{Deref, DerefMut};
+use std::{
+    default::default,
+    fmt::Debug,
+    ops::{Deref, DerefMut},
+};
 
+use super::BTree;
+use crate::{new, new_v2, NoRecurSzbTree, SzbTree};
 use platform_data::LinkType;
 use tap::Pipe;
 
-use platform_trees::{new, new_v2, NoRecurSzbTree, SzbTree};
-
-use super::BTree;
-
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Node<T> {
     pub size: T,
     pub left: Option<T>,
@@ -47,7 +46,7 @@ macro_rules! deref_derive {
     };
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct OldNode<T> {
     pub size: T,
     pub left: T,
@@ -65,14 +64,8 @@ deref_derive!(
 );
 
 impl<T: LinkType> Store<T> {
-    pub fn new(size: usize) -> Self {
-        Self((0..size).map(|_| default()).collect())
-    }
-}
-
-impl<T: LinkType> OldStore<T> {
-    pub fn new(size: usize) -> Self {
-        Self((0..size).map(|_| default()).collect())
+    pub fn new(len: usize) -> Self {
+        Self((0..len).map(|_| default()).collect())
     }
 }
 
@@ -141,19 +134,27 @@ impl<T: LinkType> NoRecurSzbTree<T> for OldStore<T> {}
 impl<T: LinkType> BTree for OldStore<T> {
     type Item = T;
 
-    fn add(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
+    fn new(len: usize) -> Self {
+        Self((0..len).map(|_| default()).collect())
+    }
+
+    fn _attach(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
         if let Some(root) = root {
             unsafe { self.attach(root, node) }
         } else {
-            *root = Some(T::one());
+            *root = Some(T::zero());
             unsafe { self.attach(root.as_mut().unwrap(), node) }
         }
     }
 
-    fn remove(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
+    fn _detach(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
         if let Some(root) = root {
             unsafe { self.detach(root, node) }
         }
+    }
+
+    fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool {
+        unsafe { <Self as SzbTree<_>>::contains(self, node, root) }
     }
 }
 
@@ -204,20 +205,30 @@ impl<T: LinkType> new::NoRecur<T> for New<T> {}
 impl<T: LinkType> BTree for New<T> {
     type Item = T;
 
-    fn add(&mut self, root: &mut Option<Self::Item>, item: Self::Item) {
+    fn new(len: usize) -> Self {
+        Self(Store::new(len))
+    }
+
+    fn _attach(&mut self, root: &mut Option<Self::Item>, item: Self::Item) {
         *root = <Self as new::NoRecur<T>>::attach(self.as_mut_slice(), *root, item);
     }
 
-    fn remove(&mut self, root: &mut Option<Self::Item>, item: Self::Item) {
+    fn _detach(&mut self, _root: &mut Option<Self::Item>, _item: Self::Item) {
         todo!()
+    }
+
+    fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool {
+        <Self as new::Tree<_>>::is_contains(self, root, node)
     }
 }
 
 mod dirty {
-    use std::convert::{TryFrom, TryInto};
-    use std::fmt::Debug;
+    use std::{
+        convert::{TryFrom, TryInto},
+        fmt::Debug,
+    };
 
-    pub(crate) fn into<T: TryFrom<usize>>(val: usize) -> T
+    pub fn into<T: TryFrom<usize> + Debug>(val: usize) -> T
     where
         <T as TryFrom<usize>>::Error: Debug,
     {
@@ -255,16 +266,20 @@ impl<T: LinkType> new_v2::NoRecur for NewV2<T> {}
 impl<T: LinkType> BTree for NewV2<T> {
     type Item = T;
 
-    fn add(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
-        *root = <Self as new_v2::NoRecur>::attach(
-            self.as_mut_slice(),
-            root.map(T::as_usize),
-            node.as_usize(),
-        )
-        .map(dirty::into)
+    fn new(len: usize) -> Self {
+        Self(Store::new(len))
     }
 
-    fn remove(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
+    fn _attach(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
+        *root = <Self as new_v2::NoRecur>::attach(self, root.map(T::as_usize), node.as_usize())
+            .map(dirty::into)
+    }
+
+    fn _detach(&mut self, _root: &mut Option<Self::Item>, _node: Self::Item) {
         todo!()
+    }
+
+    fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool {
+        <Self as new_v2::Tree>::is_contains(self, root.as_usize(), node.as_usize())
     }
 }

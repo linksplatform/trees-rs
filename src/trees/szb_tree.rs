@@ -1,6 +1,4 @@
 use platform_data::LinkType;
-use std::collections::HashMap;
-use tap::{Pipe, Tap};
 
 pub trait SzbTree<T: LinkType> {
     unsafe fn get_mut_left_reference(&mut self, node: T) -> *mut T;
