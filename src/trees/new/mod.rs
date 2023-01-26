@@ -206,6 +206,77 @@ where
     }
 }
 
+fn detach_impl<T, Tree>(slice: &mut [Tree::Item], mut root: T, idx: T) -> Option<T>
+where
+    T: LinkType,
+    Tree: self::Tree<T>,
+{
+    loop {
+        let left = Tree::left(slice, idx);
+        let right = Tree::right(slice, idx);
+        if Tree::is_left_of(slice, idx, root) {
+            let decremented =
+                Tree::size(slice, left.unwrap_or_default()).unwrap_or_default() - T::one();
+            if Tree::right_size(slice, right.unwrap_or_default()).unwrap_or_default() > decremented
+            {
+                Tree::rotate_left(slice, root);
+            } else if Tree::left_size(slice, right.unwrap_or_default()).unwrap_or_default()
+                > decremented
+            {
+                Tree::rotate_right(slice, right.unwrap_or_default());
+                Tree::rotate_left(slice, root);
+            } else {
+                Tree::dec_size(slice, root);
+                root = left.unwrap_or_default();
+            }
+        } else if Tree::is_right_of(slice, idx, root) {
+            let decremented =
+                Tree::size(slice, right.unwrap_or_default()).unwrap_or_default() - T::one();
+            if Tree::left_size(slice, left.unwrap_or_default()).unwrap_or_default() > decremented {
+                Tree::rotate_right(slice, root);
+            } else if Tree::right_size(slice, left.unwrap_or_default()).unwrap_or_default()
+                > decremented
+            {
+                Tree::rotate_left(slice, left.unwrap_or_default());
+                Tree::rotate_right(slice, root);
+            } else {
+                Tree::dec_size(slice, root);
+                root = right.unwrap_or_default();
+            }
+        } else {
+            match (left, right) {
+                (Some(left), Some(right)) => {
+                    let replacement;
+                    let left_size = Tree::size(slice, left).unwrap_or_default();
+                    let right_size = Tree::size(slice, right).unwrap_or_default();
+                    if left_size > right_size {
+                        replacement = Tree::rightest(slice, left).unwrap_or_default();
+                        detach_impl::<T, Tree>(slice, root, replacement);
+                    } else {
+                        replacement = Tree::leftest(slice, right).unwrap_or_default();
+                        detach_impl::<T, Tree>(slice, root, replacement);
+                    }
+                    Tree::set_left(slice, replacement, Some(left));
+                    Tree::set_right(slice, replacement, Some(right));
+                    Tree::set_size(slice, replacement, left_size + right_size);
+                    root = replacement;
+                }
+                (Some(left), None) => {
+                    root = left;
+                }
+                (None, Some(right)) => {
+                    root = right;
+                }
+                _ => {
+                    root = T::zero();
+                }
+            }
+            Tree::clear(slice, idx);
+            return Some(root);
+        }
+    }
+}
+
 pub trait NoRecur<T: LinkType>: Tree<T> + Sized {
     fn attach(slice: &mut [Self::Item], root: Option<T>, idx: T) -> Option<T> {
         if let Some(root) = root {
@@ -216,7 +287,11 @@ pub trait NoRecur<T: LinkType>: Tree<T> + Sized {
         }
     }
 
-    fn detach(_slice: &mut [Self::Item], _root: Option<T>, _idx: T) -> Option<T> {
-        todo!()
+    fn detach(slice: &mut [Self::Item], root: Option<T>, idx: T) -> Option<T> {
+        if let Some(root) = root {
+            detach_impl::<_, Self>(slice, root, idx)
+        } else {
+            None
+        }
     }
 }
