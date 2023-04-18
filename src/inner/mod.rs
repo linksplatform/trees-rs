@@ -12,4 +12,6 @@ pub trait BTree {
     fn _detach(&mut self, root: &mut Option<Self::Item>, node: Self::Item);
 
     fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool;
+
+    fn reset(&mut self);
 }

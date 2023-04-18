@@ -4,12 +4,14 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use super::BTree;
-use crate::{new, new_v2, NoRecurSzbTree, SzbTree};
-use platform_data::LinkType;
-use tap::Pipe;
+use {
+    super::BTree,
+    crate::{new, new_v2, NoRecurSzbTree, SzbTree},
+    platform_data::LinkType,
+    tap::Pipe,
+};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct Node<T> {
     pub size: T,
     pub left: Option<T>,
@@ -46,7 +48,7 @@ macro_rules! deref_derive {
     };
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct OldNode<T> {
     pub size: T,
     pub left: T,
@@ -95,11 +97,7 @@ impl<T: LinkType> SzbTree<T> for OldStore<T> {
     }
 
     unsafe fn get_size(&self, node: T) -> T {
-        if let Some(value) = self.get(node.as_usize()) {
-            value.size
-        } else {
-            T::zero()
-        }
+        if let Some(value) = self.get(node.as_usize()) { value.size } else { T::zero() }
     }
 
     unsafe fn set_left(&mut self, node: T, left: T) {
@@ -155,6 +153,10 @@ impl<T: LinkType> BTree for OldStore<T> {
 
     fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool {
         unsafe { <Self as SzbTree<_>>::contains(self, node, root) }
+    }
+
+    fn reset(&mut self) {
+        self.0.fill(OldNode::default())
     }
 }
 
@@ -220,6 +222,10 @@ impl<T: LinkType> BTree for New<T> {
     fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool {
         <Self as new::Tree<_>>::is_contains(self, root, node)
     }
+
+    fn reset(&mut self) {
+        self.0.fill(Node::default())
+    }
 }
 
 mod dirty {
@@ -228,11 +234,7 @@ mod dirty {
         fmt::Debug,
     };
 
-    pub fn into<T: TryFrom<usize> + Debug>(val: usize) -> T
-    where
-        <T as TryFrom<usize>>::Error: Debug,
-    {
-        // val.try_into().expect("dirty hack => bug in `core`")
+    pub fn into<T: TryFrom<usize>>(val: usize) -> T {
         unsafe { val.try_into().unwrap_unchecked() }
     }
 }
@@ -281,5 +283,9 @@ impl<T: LinkType> BTree for NewV2<T> {
 
     fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool {
         <Self as new_v2::Tree>::is_contains(self, root.as_usize(), node.as_usize())
+    }
+
+    fn reset(&mut self) {
+        self.0.fill(Node::default())
     }
 }

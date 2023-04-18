@@ -1,50 +1,46 @@
-#![feature(default_free_fn)]
-
-use criterion::{criterion_group, criterion_main, Criterion};
-use platform_trees::{BTree, New, NewV2, OldStore, Store};
-use std::default::default;
-
-fn reset<T: Default>(slice: &mut [T]) {
-    for item in slice {
-        *item = default();
-    }
-}
-
-const MAGIC: usize = 10_000;
+use {
+    criterion::{criterion_group, criterion_main, Criterion, Throughput},
+    platform_trees::{BTree, New, NewV2, OldStore, Store},
+};
 
 pub fn bench(c: &mut Criterion) {
-    c.bench_function("old", |b| {
-        let mut place = OldStore::<usize>::new(MAGIC);
-        b.iter(|| {
-            reset(&mut place);
-            let mut root = None;
-            for i in 2..=MAGIC {
-                place._attach(&mut root, i)
-            }
-        })
-    });
+    const MAGIC: usize = 1_000_000;
 
-    c.bench_function("new", |b| {
-        let mut place = New(Store::<usize>::new(MAGIC));
-        b.iter(|| {
-            reset(&mut place);
-            let mut root = None;
-            for i in 2..=MAGIC {
-                place._attach(&mut root, i);
-            }
-        })
-    });
+    c.benchmark_group("trees")
+        .throughput(Throughput::Elements(MAGIC as u64))
+        .bench_function("old", |b| {
+            let mut place = OldStore::<usize>::new(MAGIC);
+            b.iter(|| {
+                let mut root = None;
 
-    c.bench_function("new-v2", |b| {
-        let mut place = NewV2(Store::<usize>::new(MAGIC));
-        b.iter(|| {
-            reset(&mut place);
-            let mut root = None;
-            for i in 2..=MAGIC {
-                place._attach(&mut root, i);
-            }
+                for i in 2..=MAGIC {
+                    place._attach(&mut root, i)
+                }
+                place.reset();
+            })
         })
-    });
+        .bench_function("new", |b| {
+            let mut place = New(Store::<usize>::new(MAGIC));
+            b.iter(|| {
+                let mut root = None;
+
+                for i in 2..=MAGIC {
+                    place._attach(&mut root, i);
+                }
+                place.reset();
+            })
+        })
+        .bench_function("new-v2", |b| {
+            let mut place = NewV2(Store::<usize>::new(MAGIC));
+            b.iter(|| {
+                let mut root = None;
+
+                for i in 2..=MAGIC {
+                    place._attach(&mut root, i);
+                }
+                place.reset();
+            })
+        });
 }
 
 criterion_group!(benches, bench);

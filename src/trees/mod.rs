@@ -10,18 +10,7 @@ macro_rules! tri {
     };
 }
 
-macro_rules! fn_set {
-    ($($name:ident => $set:ident: $ty:ty)*) => {
-        $(
-            fn $name(slice: &mut [Self::Item], idx: usize, $set: $ty) {
-                Self::_get(slice, idx).map(|node| Self::_set(slice, idx, Node { $set, ..node }));
-            }
-        )*
-    };
-}
-
-pub use no_recur_szb_tree::NoRecurSzbTree;
-pub use szb_tree::SzbTree;
+pub use {no_recur_szb_tree::NoRecurSzbTree, szb_tree::SzbTree};
 
 pub mod new;
 pub mod new_v2;
