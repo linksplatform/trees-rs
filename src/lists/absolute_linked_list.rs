@@ -1,5 +1,4 @@
-use crate::LinkedList;
-use platform_data::LinkType;
+use crate::{LinkType, LinkedList};
 
 pub trait AbsoluteLinkedList<T: LinkType>: LinkedList<T> {
     fn get_first(&self) -> T;

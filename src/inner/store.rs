@@ -6,8 +6,7 @@ use std::{
 
 use {
     super::BTree,
-    crate::{new, new_v2, NoRecurSzbTree, SzbTree},
-    platform_data::LinkType,
+    crate::{new, new_v2, LinkType, NoRecurSzbTree, SzbTree},
     tap::Pipe,
 };
 
@@ -229,10 +228,7 @@ impl<T: LinkType> BTree for New<T> {
 }
 
 mod dirty {
-    use std::{
-        convert::{TryFrom, TryInto},
-        fmt::Debug,
-    };
+    use std::convert::{TryFrom, TryInto};
 
     pub fn into<T: TryFrom<usize>>(val: usize) -> T {
         unsafe { val.try_into().unwrap_unchecked() }

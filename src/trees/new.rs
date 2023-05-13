@@ -1,4 +1,4 @@
-use {platform_data::LinkType, tap::Pipe};
+use {crate::LinkType, tap::Pipe};
 
 pub trait Tree<T: LinkType> {
     type Item;

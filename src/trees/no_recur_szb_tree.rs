@@ -1,5 +1,4 @@
-use crate::SzbTree;
-use platform_data::LinkType;
+use crate::{LinkType, SzbTree};
 
 pub trait NoRecurSzbTree<T: LinkType>: SzbTree<T> {
     unsafe fn attach(&mut self, root: *mut T, node: T) {
