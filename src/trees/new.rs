@@ -287,10 +287,6 @@ pub trait NoRecur<T: LinkType>: Tree<T> + Sized {
     }
 
     fn detach(slice: &mut [Self::Item], root: Option<T>, idx: T) -> Option<T> {
-        if let Some(root) = root {
-            detach_impl::<_, Self>(slice, root, idx)
-        } else {
-            None
-        }
+        if let Some(root) = root { detach_impl::<_, Self>(slice, root, idx) } else { None }
     }
 }

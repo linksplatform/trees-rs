@@ -129,9 +129,7 @@ pub trait Tree {
     }
 
     fn clear(slice: &mut [Self::Item], idx: usize) {
-        Self::set_left(slice, idx, None);
-        Self::set_right(slice, idx, None);
-        Self::set_size(slice, idx, 0);
+        Self::_set(slice, idx, Node { size: 0, left: None, right: None })
     }
 
     fn rotate_left(slice: &mut [Self::Item], root: usize) -> Option<usize> {
