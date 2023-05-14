@@ -66,10 +66,12 @@ pub trait Tree<T: LinkType> {
         }
     }
 
+    #[allow(clippy::unit_arg)]
     fn inc_size(slice: &mut [Self::Item], idx: T) -> Option<()> {
         Self::set_size(slice, idx, Self::size(slice, idx)? + T::one()).pipe(Some)
     }
 
+    #[allow(clippy::unit_arg)]
     fn dec_size(slice: &mut [Self::Item], idx: T) -> Option<()> {
         Self::set_size(slice, idx, Self::size(slice, idx)? - T::one()).pipe(Some)
     }

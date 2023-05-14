@@ -1,8 +1,6 @@
 #![feature(default_free_fn)]
 // fixme: #![no_std]
-#![deny(clippy::all, clippy::perf)]
-//#![deny(unused_must_use)]
-#![allow(clippy::unit_arg)]
+#![deny(unused_must_use)]
 
 mod lists;
 mod trees;
