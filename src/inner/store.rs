@@ -273,8 +273,9 @@ impl<T: LinkType> BTree for NewV2<T> {
             .map(dirty::into)
     }
 
-    fn _detach(&mut self, _root: &mut Option<Self::Item>, _node: Self::Item) {
-        todo!()
+    fn _detach(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
+        *root = <Self as new_v2::NoRecur>::detach(self, root.map(T::as_usize), node.as_usize())
+            .map(dirty::into)
     }
 
     fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool {
