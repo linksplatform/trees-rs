@@ -1,4 +1,4 @@
-use platform_data::LinkType;
+use crate::LinkType;
 
 pub trait SzbTree<T: LinkType> {
     unsafe fn get_mut_left_reference(&mut self, node: T) -> *mut T;
@@ -26,35 +26,23 @@ pub trait SzbTree<T: LinkType> {
     unsafe fn first_is_to_the_right_of_second(&self, first: T, second: T) -> bool;
 
     unsafe fn get_left_or_default(&self, node: T) -> T {
-        if node == T::funty(0) {
-            T::funty(0)
-        } else {
-            self.get_left(node)
-        }
+        if node == T::zero() { T::zero() } else { self.get_left(node) }
     }
 
     unsafe fn get_right_or_default(&self, node: T) -> T {
-        if node == T::funty(0) {
-            T::funty(0)
-        } else {
-            self.get_right(node)
-        }
+        if node == T::zero() { T::zero() } else { self.get_right(node) }
     }
 
     unsafe fn get_size_or_zero(&self, node: T) -> T {
-        if node == T::funty(0) {
-            T::funty(0)
-        } else {
-            self.get_size(node)
-        }
+        if node == T::zero() { T::zero() } else { self.get_size(node) }
     }
 
     unsafe fn inc_size(&mut self, node: T) {
-        self.set_size(node, self.get_size(node) + T::funty(1));
+        self.set_size(node, self.get_size(node) + T::one());
     }
 
     unsafe fn dec_size(&mut self, node: T) {
-        self.set_size(node, self.get_size(node) - T::funty(1));
+        self.set_size(node, self.get_size(node) - T::one());
     }
 
     unsafe fn get_left_size(&self, node: T) -> T {
@@ -66,10 +54,7 @@ pub trait SzbTree<T: LinkType> {
     }
 
     unsafe fn fix_size(&mut self, node: T) {
-        self.set_size(
-            node,
-            (self.get_left_size(node) + self.get_right_size(node)) + T::funty(1),
-        );
+        self.set_size(node, (self.get_left_size(node) + self.get_right_size(node)) + T::one());
     }
 
     unsafe fn left_rotate(&mut self, root: *mut T) {
@@ -100,7 +85,7 @@ pub trait SzbTree<T: LinkType> {
 
     unsafe fn get_rightest(&self, mut current: T) -> T {
         let mut current_right = self.get_right(current);
-        while current_right != T::funty(0) {
+        while current_right != T::zero() {
             current = current_right;
             current_right = self.get_right(current);
         }
@@ -109,7 +94,7 @@ pub trait SzbTree<T: LinkType> {
 
     unsafe fn get_leftest(&self, mut current: T) -> T {
         let mut current_left = self.get_left(current);
-        while current_left != T::funty(0) {
+        while current_left != T::zero() {
             current = current_left;
             current_left = self.get_left(current);
         }
@@ -125,7 +110,7 @@ pub trait SzbTree<T: LinkType> {
     }
 
     unsafe fn contains(&self, node: T, mut root: T) -> bool {
-        while root != T::funty(0) {
+        while root != T::zero() {
             if self.first_is_to_the_left_of_second(node, root) {
                 root = self.get_left(root);
             } else if self.first_is_to_the_right_of_second(node, root) {
@@ -138,8 +123,8 @@ pub trait SzbTree<T: LinkType> {
     }
 
     unsafe fn clear_node(&mut self, node: T) {
-        self.set_left(node, T::funty(0));
-        self.set_right(node, T::funty(0));
-        self.set_size(node, T::funty(0));
+        self.set_left(node, T::zero());
+        self.set_right(node, T::zero());
+        self.set_size(node, T::zero());
     }
 }

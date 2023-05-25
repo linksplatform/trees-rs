@@ -2,14 +2,27 @@
 name = "platform-trees"
 version = "0.1.0-beta.1"
 edition = "2018"
-authors = ["uselesssgoddess", "Linksplatform Team <linksplatformtechnologies@gmail.com>"]
-license = "LGPL-3.0"
+authors = [
+    "uselesssgoddess",
+    "Linksplatform Team <linksplatformtechnologies@gmail.com>"
+]
+license = "Unlicense"
 repository = "https://github.com/linksplatform/Collections.Methods"
 homepage = "https://github.com/linksplatform/Collections.Methods/rust"
-description = """
-Trees methods for linksplatform
-"""
 
 [dependencies]
+tap = "1.0.1"
 funty = "2.0"
-platform-data = { version = "0.1.0-beta.3", path = "../data-rs" }
+
+[dependencies.platform-data]
+version = "0.1.0-beta.3"
+git = "https://github.com/linksplatform/core-rs"
+branch = "feature/f-oriented"
+
+[dev-dependencies]
+criterion = "0.4.0"
+proptest = "1.0.0"
+
+[[bench]]
+name = "bench"
+harness = false

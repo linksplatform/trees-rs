@@ -1,5 +1,4 @@
-use crate::LinkedList;
-use platform_data::LinkType;
+use crate::{LinkType, LinkedList};
 
 pub trait RelativeLinkedList<T: LinkType>: LinkedList<T> {
     fn get_first(&self, head: T) -> T;
@@ -11,9 +10,9 @@ pub trait RelativeLinkedList<T: LinkType>: LinkedList<T> {
     fn set_size(&mut self, head: T, size: T);
 
     fn inc_size(&mut self, head: T) {
-        self.set_size(head, self.get_size(head) + T::funty(1))
+        self.set_size(head, self.get_size(head) + T::one())
     }
     fn dec_size(&mut self, head: T) {
-        self.set_size(head, self.get_size(head) - T::funty(1))
+        self.set_size(head, self.get_size(head) - T::one())
     }
 }
