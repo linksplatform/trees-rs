@@ -63,19 +63,9 @@ pub struct OldNode<T> {
 
 #[rustfmt::skip]
 deref_derive!(
-    pub struct Store<T>(Vec<Node<T>>);
     pub struct OldStore<T>(Vec<OldNode<T>>);
-    // pub struct Old<T>  (Store<T>); -- :(
-    
-    pub struct New<T>  (Store<T>);
-    pub struct NewV2<T>(Store<T>);
+    pub struct New<T>(Vec<Node<T>>);
 );
-
-impl<T: Bridge> Store<T> {
-    pub fn new(len: usize) -> Self {
-        Self((0..len).map(|_| default()).collect())
-    }
-}
 
 impl<T: Bridge> SzbTree<T> for OldStore<T> {
     unsafe fn get_mut_left_reference(&mut self, node: T) -> *mut T {
@@ -198,7 +188,7 @@ impl<T: Bridge> BTree for New<T> {
     type Item = T;
 
     fn new(len: usize) -> Self {
-        Self(Store::new(len))
+        Self((0..len).map(|_| default()).collect())
     }
 
     fn _attach(&mut self, root: &mut Option<Self::Item>, item: Self::Item) {

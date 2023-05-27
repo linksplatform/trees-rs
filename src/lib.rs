@@ -18,7 +18,7 @@ pub use {
 pub mod inner;
 
 #[cfg(any(new_api, test))]
-pub use inner::{BTree, New, NewV2, OldStore, Store};
+pub use inner::{BTree, New, OldStore};
 
 macro_rules! named {
     ($($name:ident => $val:expr)*) => {
