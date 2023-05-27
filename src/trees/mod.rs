@@ -13,4 +13,3 @@ macro_rules! tri {
 pub use {no_recur_szb_tree::NoRecurSzbTree, szb_tree::SzbTree};
 
 pub mod new;
-pub mod new_v2;

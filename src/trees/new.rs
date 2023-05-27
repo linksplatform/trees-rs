@@ -1,294 +1,236 @@
-use {crate::LinkType, tap::Pipe};
+use {
+    platform_data::LinkType,
+    std::{ptr, ptr::NonNull},
+};
+
+#[derive(Debug)]
+pub struct Node<T: LinkType> {
+    pub size: usize,
+    pub left: Option<T>,
+    pub right: Option<T>,
+}
+
+macro_rules! fn_set {
+    ($($name:ident => $set:ident: $ty:ty)*) => {$(
+        fn $name(&mut self, idx: T, $set: $ty) {
+            if let Some(node) = self.get(idx) {
+                self.set(idx, Node { $set, ..node });
+            }
+        }
+    )*};
+}
 
 pub trait Tree<T: LinkType> {
-    type Item;
+    fn get(&self, idx: T) -> Option<Node<T>>;
+    fn set(&mut self, idx: T, node: Node<T>);
 
-    fn size(slice: &[Self::Item], idx: T) -> Option<T>;
-    fn left(slice: &[Self::Item], idx: T) -> Option<T>;
-    fn right(slice: &[Self::Item], idx: T) -> Option<T>;
+    fn left_mut(&mut self, idx: T) -> Option<&mut T>;
+    fn right_mut(&mut self, idx: T) -> Option<&mut T>;
 
-    fn set_size(slice: &mut [Self::Item], idx: T, value: T);
-    fn set_left(slice: &mut [Self::Item], idx: T, value: Option<T>);
-    fn set_right(slice: &mut [Self::Item], idx: T, value: Option<T>);
+    fn is_left_of(&self, first: T, second: T) -> bool;
 
-    fn is_left_of(slice: &[Self::Item], first: T, second: T) -> bool;
-    fn is_right_of(slice: &[Self::Item], first: T, second: T) -> bool {
-        first != second && !Self::is_left_of(slice, first, second)
+    fn is_right_of(&self, first: T, second: T) -> bool {
+        first.addr() != second.addr() && !self.is_left_of(first, second)
     }
 
-    fn left_size(slice: &[Self::Item], idx: T) -> Option<T> {
-        Self::left(slice, idx).and_then(|idx| Self::size(slice, idx))
+    fn size(&self, idx: T) -> Option<usize> {
+        try { self.get(idx).unwrap().size }
     }
 
-    fn right_size(slice: &[Self::Item], idx: T) -> Option<T> {
-        Self::right(slice, idx).and_then(|idx| Self::size(slice, idx))
+    fn left(&self, idx: T) -> Option<T> {
+        self.get(idx).unwrap().left
     }
 
-    fn rightest(slice: &[Self::Item], mut current: T) -> Option<T> {
-        while let Some(next) = Self::right(slice, current) {
+    fn right(&self, idx: T) -> Option<T> {
+        self.get(idx).unwrap().right
+    }
+
+    fn_set! {
+        set_size => size: usize
+        set_left => left: Option<T>
+        set_right => right: Option<T>
+    }
+
+    fn left_size(&self, idx: T) -> Option<usize> {
+        self.left(idx).and_then(|idx| self.size(idx))
+    }
+
+    fn right_size(&self, idx: T) -> Option<usize> {
+        self.right(idx).and_then(|idx| self.size(idx))
+    }
+
+    fn rightest(&self, mut current: T) -> T {
+        while let Some(next) = self.right(current) {
             current = next;
         }
-        Some(current)
+        current
     }
 
-    fn leftest(slice: &[Self::Item], mut current: T) -> Option<T> {
-        while let Some(next) = Self::left(slice, current) {
+    fn leftest(&self, mut current: T) -> T {
+        while let Some(next) = self.left(current) {
             current = next;
         }
-        Some(current)
+        current
     }
 
-    fn next(slice: &[Self::Item], idx: T) -> Option<T> {
-        Self::right(slice, idx).and_then(|idx| Self::leftest(slice, idx))
+    fn next(&self, idx: T) -> Option<T> {
+        self.right(idx).map(|idx| self.leftest(idx))
     }
 
-    fn prev(slice: &[Self::Item], idx: T) -> Option<T> {
-        Self::left(slice, idx).and_then(|idx| Self::rightest(slice, idx))
+    fn prev(&self, idx: T) -> Option<T> {
+        self.left(idx).map(|idx| self.rightest(idx))
     }
 
-    fn is_contains(slice: &[Self::Item], mut root: T, idx: T) -> bool {
+    fn is_contains(&self, mut root: T, idx: T) -> bool {
         loop {
-            // match (
-            //     Self::is_left_of(slice, idx, root),
-            //     Self::is_right_of(slice, idx, root),
-            // ) {
-            //     (true, _) => root = tri!(Self::left(slice, root)),
-            //     (_, true) => root = tri!(Self::right(slice, root)),
-            //     (_, _) => return false,
-            // }
-            if Self::is_left_of(slice, idx, root) {
-                root = tri!(Self::left(slice, root));
-            } else if Self::is_right_of(slice, idx, root) {
-                root = tri!(Self::right(slice, root));
+            //println!("search: {}", root.addr());
+            if self.is_left_of(idx, root) {
+                root = tri! { self.left(root) };
+            } else if self.is_right_of(idx, root) {
+                root = tri! { self.right(root) };
             } else {
-                return true;
+                break true;
             }
         }
     }
 
-    #[allow(clippy::unit_arg)]
-    fn inc_size(slice: &mut [Self::Item], idx: T) -> Option<()> {
-        Self::set_size(slice, idx, Self::size(slice, idx)? + T::one()).pipe(Some)
+    fn inc_size(&mut self, idx: T) {
+        if let Some(size) = self.size(idx) {
+            self.set_size(idx, size + 1)
+        }
     }
 
-    #[allow(clippy::unit_arg)]
-    fn dec_size(slice: &mut [Self::Item], idx: T) -> Option<()> {
-        Self::set_size(slice, idx, Self::size(slice, idx)? - T::one()).pipe(Some)
+    fn dec_size(&mut self, idx: T) {
+        if let Some(size) = self.size(idx) {
+            self.set_size(idx, size - 1)
+        }
     }
 
-    fn fix_size(slice: &mut [Self::Item], idx: T) {
-        Self::set_size(
-            slice,
+    fn fix_size(&mut self, idx: T) {
+        self.set_size(
             idx,
-            Self::left_size(slice, idx).unwrap_or_default()
-                + Self::right_size(slice, idx).unwrap_or_default()
-                + T::one(),
+            self.left_size(idx).unwrap_or_default() + self.right_size(idx).unwrap_or_default() + 1,
         )
     }
 
-    fn clear(slice: &mut [Self::Item], idx: T) {
-        Self::set_left(slice, idx, None);
-        Self::set_right(slice, idx, None);
-        Self::set_size(slice, idx, T::zero());
+    fn clear(&mut self, idx: T) {
+        self.set(idx, Node { size: 0, left: None, right: None })
     }
 
-    fn rotate_left(slice: &mut [Self::Item], root: T) -> Option<T> {
-        let right = Self::right(slice, root)?;
-        Self::set_right(slice, root, Self::left(slice, right));
-        Self::set_left(slice, right, Some(root));
-        Self::set_size(slice, right, Self::size(slice, root)?);
-        Self::fix_size(slice, root);
+    #[must_use]
+    fn rotate_left(&mut self, root: T) -> Option<T> {
+        let right = self.right(root).unwrap();
+        self.set_right(root, self.left(right));
+        self.set_left(right, Some(root));
+        self.set_size(right, self.size(root).unwrap());
+        self.fix_size(root);
         Some(right)
     }
 
-    fn rotate_right(slice: &mut [Self::Item], root: T) -> Option<T> {
-        let left = Self::left(slice, root)?;
-        Self::set_left(slice, root, Self::right(slice, left));
-        Self::set_right(slice, left, Some(root));
-        Self::set_size(slice, left, Self::size(slice, root)?);
-        Self::fix_size(slice, root);
+    #[must_use]
+    fn rotate_right(&mut self, root: T) -> Option<T> {
+        let left = self.left(root).unwrap();
+        self.set_left(root, self.right(left));
+        self.set_right(left, Some(root));
+        self.set_size(left, self.size(root).unwrap());
+        self.fix_size(root);
         Some(left)
     }
 }
 
-fn attach_impl<T, Tree>(slice: &mut [Tree::Item], mut root: T, idx: T) -> Option<T>
-where
-    T: LinkType,
-    Tree: self::Tree<T>,
-{
-    loop {
-        let left = Tree::left(slice, root);
-        let right = Tree::right(slice, root);
-        if Tree::is_left_of(slice, idx, root) {
-            match left {
-                None => {
-                    Tree::inc_size(slice, root)?;
-                    Tree::set_size(slice, idx, T::one());
-                    Tree::set_left(slice, root, Some(idx));
-                    return Some(root);
-                }
-                Some(left) => {
-                    let left_size = Tree::size(slice, left)?;
-                    let right_size = Tree::right_size(slice, root).unwrap_or_default();
-                    if Tree::is_left_of(slice, idx, left) {
-                        if left_size >= right_size {
-                            root = Tree::rotate_right(slice, root)?;
-                        } else {
-                            Tree::inc_size(slice, root)?;
-                            root = left;
-                        }
-                    } else {
-                        let lr_size = Tree::right(slice, left)
-                            .and_then(|right| Tree::size(slice, right))
-                            .unwrap_or_default();
-                        if lr_size >= right_size {
-                            if lr_size == T::zero() && right_size == T::zero() {
-                                Tree::set_left(slice, idx, Some(left));
-                                Tree::set_right(slice, idx, Some(root));
-                                Tree::set_size(slice, idx, left_size + T::two());
-                                Tree::set_left(slice, root, None);
-                                Tree::set_size(slice, root, T::one());
-                                return Some(idx);
-                            } else {
-                                let new = Tree::rotate_left(slice, left)?;
-                                Tree::set_left(slice, root, Some(new));
-                                root = Tree::rotate_right(slice, root)?;
-                            }
-                        } else {
-                            Tree::inc_size(slice, root)?;
-                            root = left;
-                        }
-                    }
-                }
-            }
+pub unsafe trait NoRecur<T: LinkType>: Tree<T> {
+    fn attach(&mut self, root: Option<T>, idx: T) -> Option<T> {
+        if let Some(mut root) = root {
+            unsafe { attach_impl(self, &mut root, idx).unwrap() };
+            Some(root)
         } else {
-            match right {
-                None => {
-                    Tree::inc_size(slice, root)?;
-                    Tree::set_size(slice, idx, T::one());
-                    Tree::set_right(slice, root, Some(idx));
-                    return Some(root);
-                }
-                Some(right) => {
-                    let right_size = Tree::size(slice, right)?;
-                    let left_size = Tree::left_size(slice, root).unwrap_or_default();
-                    if Tree::is_right_of(slice, idx, right) {
-                        if right_size >= left_size {
-                            root = Tree::rotate_left(slice, root)?;
-                        } else {
-                            Tree::inc_size(slice, root)?;
-                            root = right;
-                        }
-                    } else {
-                        let rl_size = Tree::left(slice, right)
-                            .and_then(|left| Tree::size(slice, left))
-                            .unwrap_or_default();
-                        if rl_size >= left_size {
-                            if rl_size == T::zero() && left_size == T::zero() {
-                                Tree::set_left(slice, idx, Some(root));
-                                Tree::set_right(slice, idx, Some(right));
-                                Tree::set_size(slice, idx, right_size + T::two());
-                                Tree::set_left(slice, root, None);
-                                Tree::set_size(slice, root, T::one());
-                                return Some(idx);
-                            } else {
-                                let new = Tree::rotate_right(slice, right)?;
-                                Tree::set_right(slice, root, Some(new));
-                                root = Tree::rotate_left(slice, root)?;
-                            }
-                        } else {
-                            Tree::inc_size(slice, root)?;
-                            root = right;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-fn detach_impl<T, Tree>(slice: &mut [Tree::Item], mut root: T, idx: T) -> Option<T>
-where
-    T: LinkType,
-    Tree: self::Tree<T>,
-{
-    loop {
-        let left = Tree::left(slice, idx);
-        let right = Tree::right(slice, idx);
-        if Tree::is_left_of(slice, idx, root) {
-            let decremented =
-                Tree::size(slice, left.unwrap_or_default()).unwrap_or_default() - T::one();
-            if Tree::right_size(slice, right.unwrap_or_default()).unwrap_or_default() > decremented
-            {
-                Tree::rotate_left(slice, root);
-            } else if Tree::left_size(slice, right.unwrap_or_default()).unwrap_or_default()
-                > decremented
-            {
-                Tree::rotate_right(slice, right.unwrap_or_default());
-                Tree::rotate_left(slice, root);
-            } else {
-                Tree::dec_size(slice, root);
-                root = left.unwrap_or_default();
-            }
-        } else if Tree::is_right_of(slice, idx, root) {
-            let decremented =
-                Tree::size(slice, right.unwrap_or_default()).unwrap_or_default() - T::one();
-            if Tree::left_size(slice, left.unwrap_or_default()).unwrap_or_default() > decremented {
-                Tree::rotate_right(slice, root);
-            } else if Tree::right_size(slice, left.unwrap_or_default()).unwrap_or_default()
-                > decremented
-            {
-                Tree::rotate_left(slice, left.unwrap_or_default());
-                Tree::rotate_right(slice, root);
-            } else {
-                Tree::dec_size(slice, root);
-                root = right.unwrap_or_default();
-            }
-        } else {
-            match (left, right) {
-                (Some(left), Some(right)) => {
-                    let replacement;
-                    let left_size = Tree::size(slice, left).unwrap_or_default();
-                    let right_size = Tree::size(slice, right).unwrap_or_default();
-                    if left_size > right_size {
-                        replacement = Tree::rightest(slice, left).unwrap_or_default();
-                        detach_impl::<T, Tree>(slice, root, replacement);
-                    } else {
-                        replacement = Tree::leftest(slice, right).unwrap_or_default();
-                        detach_impl::<T, Tree>(slice, root, replacement);
-                    }
-                    Tree::set_left(slice, replacement, Some(left));
-                    Tree::set_right(slice, replacement, Some(right));
-                    Tree::set_size(slice, replacement, left_size + right_size);
-                    root = replacement;
-                }
-                (Some(left), None) => {
-                    root = left;
-                }
-                (None, Some(right)) => {
-                    root = right;
-                }
-                _ => {
-                    root = T::zero();
-                }
-            }
-            Tree::clear(slice, idx);
-            return Some(root);
-        }
-    }
-}
-
-pub trait NoRecur<T: LinkType>: Tree<T> + Sized {
-    fn attach(slice: &mut [Self::Item], root: Option<T>, idx: T) -> Option<T> {
-        if let Some(root) = root {
-            attach_impl::<_, Self>(slice, root, idx)
-        } else {
-            Self::set_size(slice, idx, T::one());
+            self.set_size(idx, 1);
             Some(idx)
         }
     }
+}
 
-    fn detach(slice: &mut [Self::Item], root: Option<T>, idx: T) -> Option<T> {
-        if let Some(root) = root { detach_impl::<_, Self>(slice, root, idx) } else { None }
+unsafe fn attach_impl<T: LinkType, Tree>(tree: &mut Tree, mut root: *mut T, idx: T) -> Option<()>
+where
+    Tree: NoRecur<T> + ?Sized,
+{
+    loop {
+        if tree.is_left_of(idx, *root) {
+            let Some(left) = tree.left_mut(*root) else {
+                tree.inc_size(*root);
+                tree.set_size(idx, 1);
+                tree.set_left(*root, Some(idx));
+                return Some(());
+            };
+            let left = left as *mut T;
+
+            let left_size = tree.size(*left).unwrap();
+            let right_size = tree.right_size(*root).unwrap_or_default();
+
+            if tree.is_left_of(idx, *left) {
+                if left_size >= right_size {
+                    *root = tree.rotate_right(*root).unwrap();
+                } else {
+                    tree.inc_size(*root);
+                    root = left;
+                }
+            } else {
+                let lr_size = tree.right_size(*left).unwrap_or_default();
+                if lr_size >= right_size {
+                    if lr_size == 0 && right_size == 0 {
+                        tree.set_left(idx, Some(*left));
+                        tree.set_right(idx, Some(*root));
+                        tree.set_size(idx, left_size + 2);
+                        tree.set_left(*root, None);
+                        tree.set_size(*root, 1);
+                        *root = idx;
+                        return Some(());
+                    }
+                    *left = tree.rotate_left(*left).unwrap();
+                    *root = tree.rotate_right(*root).unwrap();
+                } else {
+                    tree.inc_size(*root);
+                    root = left;
+                }
+            }
+        } else {
+            let Some(right) = tree.right_mut(*root) else {
+                tree.inc_size(*root);
+                tree.set_size(idx, 1);
+                tree.set_right(*root, Some(idx));
+                return Some(());
+            };
+            let right = right as *mut T;
+
+            let right_size = tree.size(*right).unwrap();
+            let left_size = tree.left_size(*root).unwrap_or_default();
+
+            if tree.is_right_of(idx, *right) {
+                if right_size >= left_size {
+                    *root = tree.rotate_left(*root).unwrap();
+                } else {
+                    tree.inc_size(*root);
+                    root = right;
+                }
+            } else {
+                let rl_size = tree.left_size(*right).unwrap_or_default();
+                if rl_size >= left_size {
+                    if rl_size == 0 && left_size == 0 {
+                        tree.set_left(idx, Some(*root));
+                        tree.set_right(idx, Some(*right));
+                        tree.set_size(idx, right_size + 2);
+                        tree.set_right(*root, None);
+                        tree.set_size(*root, 1);
+                        *root = idx;
+                        return Some(());
+                    }
+                    *right = tree.rotate_right(*right).unwrap();
+                    *root = tree.rotate_left(*root).unwrap();
+                } else {
+                    tree.inc_size(*root);
+                    root = right;
+                }
+            }
+        }
     }
 }

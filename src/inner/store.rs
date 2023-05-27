@@ -1,12 +1,19 @@
-use std::{
-    default::default,
-    fmt::Debug,
-    ops::{Deref, DerefMut},
+use {
+    funty::Fundamental,
+    platform_data::LinkType,
+    std::{
+        default::default,
+        fmt::Debug,
+        ops::{Deref, DerefMut},
+    },
 };
 
 use {
     super::BTree,
-    crate::{new, new_v2, LinkType, NoRecurSzbTree, SzbTree},
+    crate::{
+        new::{self, NoRecur},
+        LinkType as Bridge, NoRecurSzbTree, SzbTree,
+    },
     tap::Pipe,
 };
 
@@ -64,13 +71,13 @@ deref_derive!(
     pub struct NewV2<T>(Store<T>);
 );
 
-impl<T: LinkType> Store<T> {
+impl<T: Bridge> Store<T> {
     pub fn new(len: usize) -> Self {
         Self((0..len).map(|_| default()).collect())
     }
 }
 
-impl<T: LinkType> SzbTree<T> for OldStore<T> {
+impl<T: Bridge> SzbTree<T> for OldStore<T> {
     unsafe fn get_mut_left_reference(&mut self, node: T) -> *mut T {
         &mut self.get_mut(node.as_usize()).unwrap().left
     }
@@ -126,9 +133,9 @@ impl<T: LinkType> SzbTree<T> for OldStore<T> {
     }
 }
 
-impl<T: LinkType> NoRecurSzbTree<T> for OldStore<T> {}
+impl<T: Bridge> NoRecurSzbTree<T> for OldStore<T> {}
 
-impl<T: LinkType> BTree for OldStore<T> {
+impl<T: Bridge> BTree for OldStore<T> {
     type Item = T;
 
     fn new(len: usize) -> Self {
@@ -159,51 +166,35 @@ impl<T: LinkType> BTree for OldStore<T> {
     }
 }
 
-impl<T: LinkType> new::Tree<T> for New<T> {
-    type Item = Node<T>;
-
-    fn size(slice: &[Self::Item], idx: T) -> Option<T> {
-        slice.get(idx.as_usize())?.size.pipe(Some)
+impl<T: Bridge + LinkType> new::Tree<T> for New<T> {
+    fn get(&self, idx: T) -> Option<new::Node<T>> {
+        let Node { size, left, right } = self.0.get(idx.addr()).copied()?;
+        Some(new::Node { size: size.addr(), left, right })
     }
 
-    fn left(slice: &[Self::Item], idx: T) -> Option<T> {
-        slice.get(idx.as_usize())?.left
+    fn set(&mut self, idx: T, node: new::Node<T>) {
+        let Node { size, left, right } = &mut self.0[idx.addr()];
+        *size = T::from_addr(node.size);
+        *left = node.left;
+        *right = node.right;
     }
 
-    fn right(slice: &[Self::Item], idx: T) -> Option<T> {
-        slice.get(idx.as_usize())?.right
+    fn left_mut(&mut self, idx: T) -> Option<&mut T> {
+        self.0.get_mut(idx.addr())?.left.as_mut()
     }
 
-    fn set_size(slice: &mut [Self::Item], idx: T, value: T) {
-        if let Some(node) = slice.get_mut(idx.as_usize()) {
-            node.size = value
-        }
+    fn right_mut(&mut self, idx: T) -> Option<&mut T> {
+        self.0.get_mut(idx.addr())?.right.as_mut()
     }
 
-    fn set_left(slice: &mut [Self::Item], idx: T, value: Option<T>) {
-        if let Some(node) = slice.get_mut(idx.as_usize()) {
-            node.left = value
-        }
-    }
-
-    fn set_right(slice: &mut [Self::Item], idx: T, value: Option<T>) {
-        if let Some(node) = slice.get_mut(idx.as_usize()) {
-            node.right = value
-        }
-    }
-
-    fn is_left_of(_: &[Self::Item], first: T, second: T) -> bool {
-        first < second
-    }
-
-    fn is_right_of(_: &[Self::Item], first: T, second: T) -> bool {
-        first > second
+    fn is_left_of(&self, first: T, second: T) -> bool {
+        first.addr() < second.addr()
     }
 }
 
-impl<T: LinkType> new::NoRecur<T> for New<T> {}
+unsafe impl<T: Bridge> new::NoRecur<T> for New<T> {}
 
-impl<T: LinkType> BTree for New<T> {
+impl<T: Bridge> BTree for New<T> {
     type Item = T;
 
     fn new(len: usize) -> Self {
@@ -211,7 +202,7 @@ impl<T: LinkType> BTree for New<T> {
     }
 
     fn _attach(&mut self, root: &mut Option<Self::Item>, item: Self::Item) {
-        *root = <Self as new::NoRecur<T>>::attach(self.as_mut_slice(), *root, item);
+        *root = self.attach(*root, item);
     }
 
     fn _detach(&mut self, _root: &mut Option<Self::Item>, _item: Self::Item) {
@@ -232,57 +223,5 @@ mod dirty {
 
     pub fn into<T: TryFrom<usize>>(val: usize) -> T {
         unsafe { val.try_into().unwrap_unchecked() }
-    }
-}
-
-impl<T: LinkType> new_v2::Tree for NewV2<T> {
-    type Item = Node<T>;
-
-    #[inline]
-    fn get(item: &Self::Item) -> new_v2::Node {
-        new_v2::Node {
-            size: item.size.as_usize(),
-            left: item.left.map(T::as_usize),
-            right: item.right.map(T::as_usize),
-        }
-    }
-
-    #[inline(always)]
-    fn set(item: &mut Self::Item, val: new_v2::Node) {
-        item.size = val.size.pipe(dirty::into);
-        item.left = val.left.map(dirty::into);
-        item.right = val.right.map(dirty::into);
-    }
-
-    fn is_left_of(_: &[Self::Item], first: usize, second: usize) -> bool {
-        first < second
-    }
-}
-
-impl<T: LinkType> new_v2::NoRecur for NewV2<T> {}
-
-impl<T: LinkType> BTree for NewV2<T> {
-    type Item = T;
-
-    fn new(len: usize) -> Self {
-        Self(Store::new(len))
-    }
-
-    fn _attach(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
-        *root = <Self as new_v2::NoRecur>::attach(self, root.map(T::as_usize), node.as_usize())
-            .map(dirty::into)
-    }
-
-    fn _detach(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
-        *root = <Self as new_v2::NoRecur>::detach(self, root.map(T::as_usize), node.as_usize())
-            .map(dirty::into)
-    }
-
-    fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool {
-        <Self as new_v2::Tree>::is_contains(self, root.as_usize(), node.as_usize())
-    }
-
-    fn reset(&mut self) {
-        self.0.fill(Node::default())
     }
 }

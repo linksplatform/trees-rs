@@ -1,4 +1,5 @@
 #![feature(default_free_fn)]
+#![feature(try_blocks)]
 // fixme: #![no_std]
 #![deny(unused_must_use)]
 
@@ -10,7 +11,7 @@ pub use {
         AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkedList, RelativeCircularLinkedList,
         RelativeLinkedList,
     },
-    trees::{new, new_v2, NoRecurSzbTree, SzbTree},
+    trees::{new, NoRecurSzbTree, SzbTree},
 };
 
 #[cfg(any(new_api, test))]
