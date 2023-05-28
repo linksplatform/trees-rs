@@ -234,7 +234,7 @@ impl<T: Bridge> BTree for New<T> {
     }
 
     fn is_empty(&self) -> bool {
-        self.0.0 == (0..self.0.0.len()).map(|_| default()).collect::<Vec<_>>()
+        self.0 == (0..self.0.len()).map(|_| default()).collect::<Vec<_>>()
     }
 
     fn reset(&mut self) {
