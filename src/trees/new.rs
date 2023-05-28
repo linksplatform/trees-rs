@@ -4,6 +4,7 @@ use {
 };
 
 #[derive(Debug)]
+#[repr(C)]
 pub struct Node<T: LinkType> {
     pub size: usize,
     pub left: Option<T>,
@@ -34,15 +35,15 @@ pub trait Tree<T: LinkType> {
     }
 
     fn size(&self, idx: T) -> Option<usize> {
-        try { self.get(idx).unwrap().size }
+        try { self.get(idx)?.size }
     }
 
     fn left(&self, idx: T) -> Option<T> {
-        self.get(idx).unwrap().left
+        self.get(idx)?.left
     }
 
     fn right(&self, idx: T) -> Option<T> {
-        self.get(idx).unwrap().right
+        self.get(idx)?.right
     }
 
     fn_set! {
@@ -83,7 +84,6 @@ pub trait Tree<T: LinkType> {
 
     fn is_contains(&self, mut root: T, idx: T) -> bool {
         loop {
-            //println!("search: {}", root.addr());
             if self.is_left_of(idx, root) {
                 root = tri! { self.left(root) };
             } else if self.is_right_of(idx, root) {
@@ -119,20 +119,20 @@ pub trait Tree<T: LinkType> {
 
     #[must_use]
     fn rotate_left(&mut self, root: T) -> Option<T> {
-        let right = self.right(root).unwrap();
+        let right = self.right(root)?;
         self.set_right(root, self.left(right));
         self.set_left(right, Some(root));
-        self.set_size(right, self.size(root).unwrap());
+        self.set_size(right, self.size(root)?);
         self.fix_size(root);
         Some(right)
     }
 
     #[must_use]
     fn rotate_right(&mut self, root: T) -> Option<T> {
-        let left = self.left(root).unwrap();
+        let left = self.left(root)?;
         self.set_left(root, self.right(left));
         self.set_right(left, Some(root));
-        self.set_size(left, self.size(root).unwrap());
+        self.set_size(left, self.size(root)?);
         self.fix_size(root);
         Some(left)
     }
@@ -141,14 +141,29 @@ pub trait Tree<T: LinkType> {
 pub unsafe trait NoRecur<T: LinkType>: Tree<T> {
     fn attach(&mut self, root: Option<T>, idx: T) -> Option<T> {
         if let Some(mut root) = root {
-            unsafe { attach_impl(self, &mut root, idx).unwrap() };
+            unsafe { attach_impl(self, &mut root, idx)? }
             Some(root)
         } else {
             self.set_size(idx, 1);
             Some(idx)
         }
     }
+
+    fn detach(&mut self, root: Option<T>, idx: T) -> Option<T> {
+        let mut root = root?;
+
+        if unsafe { detach_impl(self, &mut root, idx) }.expect(UNCHECKED_MESSAGE) {
+            None
+        } else {
+            Some(root)
+        }
+    }
+
+    #[must_use]
+    unsafe fn remove_idx(&mut self, addr: *mut T) -> bool;
 }
+
+const UNCHECKED_MESSAGE: &str = "unchecked...";
 
 unsafe fn attach_impl<T: LinkType, Tree>(tree: &mut Tree, mut root: *mut T, idx: T) -> Option<()>
 where
@@ -164,12 +179,12 @@ where
             };
             let left = left as *mut T;
 
-            let left_size = tree.size(*left).unwrap();
+            let left_size = tree.size(*left)?;
             let right_size = tree.right_size(*root).unwrap_or_default();
 
             if tree.is_left_of(idx, *left) {
                 if left_size >= right_size {
-                    *root = tree.rotate_right(*root).unwrap();
+                    *root = tree.rotate_right(*root)?;
                 } else {
                     tree.inc_size(*root);
                     root = left;
@@ -186,8 +201,8 @@ where
                         *root = idx;
                         return Some(());
                     }
-                    *left = tree.rotate_left(*left).unwrap();
-                    *root = tree.rotate_right(*root).unwrap();
+                    *left = tree.rotate_left(*left)?;
+                    *root = tree.rotate_right(*root)?;
                 } else {
                     tree.inc_size(*root);
                     root = left;
@@ -202,12 +217,12 @@ where
             };
             let right = right as *mut T;
 
-            let right_size = tree.size(*right).unwrap();
+            let right_size = tree.size(*right)?;
             let left_size = tree.left_size(*root).unwrap_or_default();
 
             if tree.is_right_of(idx, *right) {
                 if right_size >= left_size {
-                    *root = tree.rotate_left(*root).unwrap();
+                    *root = tree.rotate_left(*root)?;
                 } else {
                     tree.inc_size(*root);
                     root = right;
@@ -224,13 +239,92 @@ where
                         *root = idx;
                         return Some(());
                     }
-                    *right = tree.rotate_right(*right).unwrap();
-                    *root = tree.rotate_left(*root).unwrap();
+                    *right = tree.rotate_right(*right)?;
+                    *root = tree.rotate_left(*root)?;
                 } else {
                     tree.inc_size(*root);
                     root = right;
                 }
             }
+        }
+    }
+}
+
+unsafe fn detach_impl<T: LinkType, Tree>(tree: &mut Tree, mut root: *mut T, idx: T) -> Option<bool>
+where
+    Tree: NoRecur<T> + ?Sized,
+{
+    #[rustfmt::skip]
+    fn as_ptr<T>(t: &mut T) -> *mut T { t }
+
+    loop {
+        let left = tree.left_mut(*root).map(as_ptr);
+        let right = tree.right_mut(*root).map(as_ptr);
+
+        if tree.is_left_of(idx, *root) {
+            let rl_size =
+                tree.right(*root).and_then(|right| tree.left_size(right)).unwrap_or_default();
+            let rr_size =
+                tree.right(*root).and_then(|right| tree.right_size(right)).unwrap_or_default();
+            let left_size = tree.left_size(*root).unwrap_or_default();
+
+            if rr_size >= left_size {
+                *root = tree.rotate_left(*root)?;
+            } else if rl_size >= left_size {
+                let right = right.expect(UNCHECKED_MESSAGE);
+
+                *right = tree.rotate_right(*right)?;
+                *root = tree.rotate_left(*root)?;
+            } else {
+                tree.dec_size(*root);
+                root = left.expect(UNCHECKED_MESSAGE);
+            }
+        } else if tree.is_right_of(idx, *root) {
+            let ll_size =
+                tree.left(*root).and_then(|right| tree.left_size(right)).unwrap_or_default();
+            let lr_size =
+                tree.left(*root).and_then(|right| tree.right_size(right)).unwrap_or_default();
+            let right_size = tree.right_size(*root).unwrap_or_default();
+
+            if ll_size >= right_size {
+                *root = tree.rotate_left(*root)?;
+            } else if lr_size >= right_size {
+                let left = left.expect(UNCHECKED_MESSAGE);
+
+                *left = tree.rotate_left(*left)?;
+                *root = tree.rotate_right(*root)?;
+            } else {
+                tree.dec_size(*root);
+                root = right.expect(UNCHECKED_MESSAGE);
+            }
+        } else {
+            match (left, right) {
+                (Some(left), Some(right)) => {
+                    let (left_size, right_size) = (tree.left_size(*root)?, tree.right_size(*root)?);
+
+                    let new;
+                    if left_size > right_size {
+                        new = tree.rightest(*left);
+                        let _ = detach_impl(tree, left, new);
+                    } else {
+                        new = tree.leftest(*right);
+                        let _ = detach_impl(tree, right, new);
+                    }
+                    tree.set_left(new, tree.left(*root));
+                    tree.set_right(new, tree.right(*root));
+                    tree.set_size(new, left_size + right_size);
+                    *root = new;
+                }
+                (Some(left), _) => *root = *left,
+                (_, Some(right)) => *root = *right,
+                _ => {
+                    tree.clear(idx);
+                    // println!("ZORRO");
+                    return Some(tree.remove_idx(root));
+                }
+            };
+            tree.clear(idx);
+            return Some(false);
         }
     }
 }

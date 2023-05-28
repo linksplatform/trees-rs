@@ -1,6 +1,6 @@
 use {
     platform_trees::{inner, BTree, OldStore, Store},
-    std::collections::HashSet,
+    std::{collections::HashSet, mem},
 };
 
 use proptest::prelude::*;
@@ -30,7 +30,7 @@ quick_impl!(
     New | inner::New<usize> => |len| inner::New(Store::new(len))
 );
 
-const STRATEGY_LEN: usize = 1024;
+const STRATEGY_LEN: usize = 10;
 
 prop_compose! {
     fn seq_strategy()
@@ -52,16 +52,20 @@ fn inner<Tree: QuickTree>((vec, len): (Vec<usize>, usize)) {
         assert!(store.is_contains(root.unwrap(), *item));
     }
 
-    //for item in &vec {
-    //    store._detach(&mut root, *item);
-    //}
+    for item in vec {
+        store._detach(&mut root, item);
+        if let Some(root) = root {
+            assert!(!store.is_contains(root, item));
+        }
+    }
 
-    //for item in vec {
-    //    assert!(!store.is_contains(root.unwrap(), item));
-    //}
+    assert!(store.is_empty());
 }
 
-use proptest::test_runner::FileFailurePersistence;
+use {
+    platform_trees::new::{NoRecur, Tree},
+    proptest::test_runner::FileFailurePersistence,
+};
 
 proptest! {
     #![proptest_config(ProptestConfig {

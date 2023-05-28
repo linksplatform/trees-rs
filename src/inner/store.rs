@@ -4,7 +4,9 @@ use {
     std::{
         default::default,
         fmt::Debug,
+        mem,
         ops::{Deref, DerefMut},
+        pin::pin,
     },
 };
 
@@ -17,7 +19,7 @@ use {
     tap::Pipe,
 };
 
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct Node<T> {
     pub size: T,
     pub left: Option<T>,
@@ -54,7 +56,7 @@ macro_rules! deref_derive {
     };
 }
 
-#[derive(Debug, Default, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub struct OldNode<T> {
     pub size: T,
     pub left: T,
@@ -161,6 +163,10 @@ impl<T: Bridge> BTree for OldStore<T> {
         unsafe { <Self as SzbTree<_>>::contains(self, node, root) }
     }
 
+    fn is_empty(&self) -> bool {
+        self.0 == (0..self.0.len()).map(|_| default()).collect::<Vec<_>>()
+    }
+
     fn reset(&mut self) {
         self.0.fill(OldNode::default())
     }
@@ -192,7 +198,31 @@ impl<T: Bridge + LinkType> new::Tree<T> for New<T> {
     }
 }
 
-unsafe impl<T: Bridge> new::NoRecur<T> for New<T> {}
+unsafe impl<T: Bridge> new::NoRecur<T> for New<T> {
+    unsafe fn remove_idx(&mut self, addr: *mut T) -> bool {
+        // {
+        //     let block = mem::size_of::<new::Node<T>>();
+        //     // later use `strict provenance`
+        //     let addr = (addr as usize - self.0.as_ptr() as usize) % block;
+        //
+        //     #[allow(clippy::if_same_then_else)]
+        //     if addr == mem::size_of::<usize>() {
+        //         // left
+        //     } else {
+        //         // right
+        //     }
+        // }
+
+        let ptr = addr.cast::<u8>().sub(mem::size_of::<T>()) as *mut Option<T>;
+
+        if self.0.as_ptr_range().contains(&(addr as *const _)) {
+            *ptr = None;
+            false
+        } else {
+            true
+        }
+    }
+}
 
 impl<T: Bridge> BTree for New<T> {
     type Item = T;
@@ -205,12 +235,16 @@ impl<T: Bridge> BTree for New<T> {
         *root = self.attach(*root, item);
     }
 
-    fn _detach(&mut self, _root: &mut Option<Self::Item>, _item: Self::Item) {
-        todo!()
+    fn _detach(&mut self, root: &mut Option<Self::Item>, item: Self::Item) {
+        *root = self.detach(*root, item);
     }
 
     fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool {
         <Self as new::Tree<_>>::is_contains(self, root, node)
+    }
+
+    fn is_empty(&self) -> bool {
+        self.0.0 == (0..self.0.0.len()).map(|_| default()).collect::<Vec<_>>()
     }
 
     fn reset(&mut self) {

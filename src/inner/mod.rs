@@ -13,5 +13,7 @@ pub trait BTree {
 
     fn is_contains(&self, root: Self::Item, node: Self::Item) -> bool;
 
+    fn is_empty(&self) -> bool;
+
     fn reset(&mut self);
 }
