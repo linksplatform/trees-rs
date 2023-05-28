@@ -1,4 +1,4 @@
-pub use store::{New, NewV2, OldStore, Store};
+pub use store::{New, OldStore};
 
 mod store;
 
