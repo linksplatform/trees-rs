@@ -1,5 +1,5 @@
 use {
-    platform_trees::{inner, BTree, OldStore, Store},
+    platform_trees::{inner, BTree, OldStore},
     std::{collections::HashSet, mem},
 };
 
@@ -27,7 +27,7 @@ macro_rules! quick_impl {
 
 quick_impl!(
     Old | OldStore<usize> => |len| OldStore::new(len)
-    New | inner::New<usize> => |len| inner::New(Store::new(len))
+    New | inner::New<usize> => |len| inner::New::new(len)
 );
 
 const STRATEGY_LEN: usize = 10;

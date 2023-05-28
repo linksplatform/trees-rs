@@ -1,6 +1,6 @@
 use {
     criterion::{criterion_group, criterion_main, Criterion, Throughput},
-    platform_trees::{BTree, New, NewV2, OldStore, Store},
+    platform_trees::{BTree, New, OldStore},
 };
 
 pub fn bench(c: &mut Criterion) {
@@ -23,7 +23,7 @@ pub fn bench(c: &mut Criterion) {
             })
         })
         .bench_function("new", |b| {
-            let mut place = New(Store::<usize>::new(MAGIC + 1));
+            let mut place = New::new(MAGIC + 1);
             b.iter(|| {
                 let mut root = None;
 
