@@ -1,6 +1,6 @@
 use crate::{LinkType, SzbTree};
 
-pub trait NoRecurSzbTree<T: LinkType>: SzbTree<T> {
+pub trait NoRecurSzbTree<T: LinkType + funty::Unsigned>: SzbTree<T> {
     unsafe fn attach(&mut self, root: *mut T, node: T) {
         if *root == T::zero() {
             self.set_size(node, T::one());

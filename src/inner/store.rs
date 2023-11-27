@@ -1,29 +1,28 @@
 use {
-    funty::Fundamental,
-    platform_data::LinkType,
-    std::{
-        default::default,
-        fmt::Debug,
-        mem,
-        ops::{Deref, DerefMut},
-        pin::pin,
-    },
-};
-
-use {
     super::BTree,
     crate::{
-        new::{self, NoRecur},
-        LinkType as Bridge, NoRecurSzbTree, SzbTree,
+        new::{self, NoRecur as _},
+        Leaf, LinkType as Bridge, NoRecurSzbTree, SzbTree,
     },
-    tap::Pipe,
+    std::{
+        default::Default,
+        fmt::Debug,
+        mem,
+        ops::{Deref, DerefMut, Range},
+    },
 };
 
-#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Node<T> {
-    pub size: T,
+    pub size: usize,
     pub left: Option<T>,
     pub right: Option<T>,
+}
+
+impl<T> Default for Node<T> {
+    fn default() -> Self {
+        Self { size: 0, left: None, right: None }
+    }
 }
 
 macro_rules! deref_derive {
@@ -69,7 +68,7 @@ deref_derive!(
     pub struct New<T>(Vec<Node<T>>);
 );
 
-impl<T: Bridge> SzbTree<T> for OldStore<T> {
+impl<T: Bridge + funty::Unsigned + Default> SzbTree<T> for OldStore<T> {
     unsafe fn get_mut_left_reference(&mut self, node: T) -> *mut T {
         &mut self.get_mut(node.as_usize()).unwrap().left
     }
@@ -125,13 +124,13 @@ impl<T: Bridge> SzbTree<T> for OldStore<T> {
     }
 }
 
-impl<T: Bridge> NoRecurSzbTree<T> for OldStore<T> {}
+impl<T: Bridge + funty::Unsigned + Default> NoRecurSzbTree<T> for OldStore<T> {}
 
-impl<T: Bridge> BTree for OldStore<T> {
+impl<T: Bridge + Default + funty::Unsigned> BTree for OldStore<T> {
     type Item = T;
 
-    fn new(len: usize) -> Self {
-        Self((0..len).map(|_| default()).collect())
+    fn make(len: usize) -> Self {
+        Self((0..len).map(|_| Default::default()).collect())
     }
 
     fn _attach(&mut self, root: &mut Option<Self::Item>, node: Self::Item) {
@@ -154,7 +153,7 @@ impl<T: Bridge> BTree for OldStore<T> {
     }
 
     fn is_empty(&self) -> bool {
-        self.0 == (0..self.0.len()).map(|_| default()).collect::<Vec<_>>()
+        self.0 == (0..self.0.len()).map(|_| Default::default()).collect::<Vec<_>>()
     }
 
     fn reset(&mut self) {
@@ -162,63 +161,57 @@ impl<T: Bridge> BTree for OldStore<T> {
     }
 }
 
-impl<T: Bridge + LinkType> new::Tree<T> for New<T> {
-    fn get(&self, idx: T) -> Option<new::Node<T>> {
-        let Node { size, left, right } = self.0.get(idx.addr()).copied()?;
-        Some(new::Node { size: size.addr(), left, right })
+impl<T> New<T> {
+    #[allow(clippy::self_named_constructors)]
+    pub fn new(len: usize) -> Self {
+        Self((0..len).map(|_| Default::default()).collect())
+    }
+}
+
+impl<T: Leaf> new::Tree<T> for New<T> {
+    fn ptr_range(&self) -> Range<*const u8> {
+        // Safety: pointer values do not change during a cast
+        // it looks like box coercions
+        unsafe { mem::transmute(self.0.as_ptr_range()) }
     }
 
+    #[inline(always)]
+    fn get(&self, idx: T) -> Option<new::Node<T>> {
+        let Node { size, left, right } = self.0.get(idx.addr()).copied()?;
+        Some(new::Node { size: Leaf::addr(size), left, right })
+    }
+
+    #[inline(always)]
     fn set(&mut self, idx: T, node: new::Node<T>) {
         let Node { size, left, right } = &mut self.0[idx.addr()];
-        *size = T::from_addr(node.size);
+        *size = node.size;
         *left = node.left;
         *right = node.right;
     }
 
+    #[inline(always)]
     fn left_mut(&mut self, idx: T) -> Option<&mut T> {
         self.0.get_mut(idx.addr())?.left.as_mut()
     }
 
+    #[inline(always)]
     fn right_mut(&mut self, idx: T) -> Option<&mut T> {
         self.0.get_mut(idx.addr())?.right.as_mut()
     }
 
+    #[inline(always)]
     fn is_left_of(&self, first: T, second: T) -> bool {
         first.addr() < second.addr()
     }
 }
 
-unsafe impl<T: Bridge> new::NoRecur<T> for New<T> {
-    unsafe fn remove_idx(&mut self, addr: *mut T) -> bool {
-        // {
-        //     let block = mem::size_of::<new::Node<T>>();
-        //     // later use `strict provenance`
-        //     let addr = (addr as usize - self.0.as_ptr() as usize) % block;
-        //
-        //     #[allow(clippy::if_same_then_else)]
-        //     if addr == mem::size_of::<usize>() {
-        //         // left
-        //     } else {
-        //         // right
-        //     }
-        // }
+unsafe impl<T: Leaf> new::NoRecur<T> for New<T> {}
 
-        let ptr = addr.cast::<u8>().sub(mem::size_of::<T>()) as *mut Option<T>;
-
-        if self.0.as_ptr_range().contains(&(addr as *const _)) {
-            *ptr = None;
-            false
-        } else {
-            true
-        }
-    }
-}
-
-impl<T: Bridge> BTree for New<T> {
+impl<T: Bridge + Leaf + PartialEq> BTree for New<T> {
     type Item = T;
 
-    fn new(len: usize) -> Self {
-        Self((0..len).map(|_| default()).collect())
+    fn make(len: usize) -> Self {
+        Self((0..len).map(|_| Default::default()).collect())
     }
 
     fn _attach(&mut self, root: &mut Option<Self::Item>, item: Self::Item) {
@@ -234,18 +227,10 @@ impl<T: Bridge> BTree for New<T> {
     }
 
     fn is_empty(&self) -> bool {
-        self.0 == (0..self.0.len()).map(|_| default()).collect::<Vec<_>>()
+        self.0 == (0..self.0.len()).map(|_| Default::default()).collect::<Vec<_>>()
     }
 
     fn reset(&mut self) {
         self.0.fill(Node::default())
-    }
-}
-
-mod dirty {
-    use std::convert::{TryFrom, TryInto};
-
-    pub fn into<T: TryFrom<usize>>(val: usize) -> T {
-        unsafe { val.try_into().unwrap_unchecked() }
     }
 }

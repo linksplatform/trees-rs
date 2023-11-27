@@ -1,6 +1,6 @@
 use crate::{LinkType, RelativeLinkedList};
 
-pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
+pub trait RelativeCircularLinkedList<T: LinkType + funty::Unsigned>: RelativeLinkedList<T> {
     fn attach_before(&mut self, head: T, base_element: T, new_element: T) {
         let base_element_previous = self.get_previous(base_element);
         self.set_previous(new_element, base_element_previous);

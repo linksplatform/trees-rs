@@ -1,6 +1,6 @@
 use {
     platform_trees::{inner, BTree, OldStore},
-    std::{collections::HashSet, mem},
+    std::num::NonZeroUsize,
 };
 
 use proptest::prelude::*;
@@ -26,8 +26,8 @@ macro_rules! quick_impl {
 }
 
 quick_impl!(
-    Old | OldStore<usize> => |len| OldStore::new(len)
-    New | inner::New<usize> => |len| inner::New::new(len)
+    Old | OldStore<usize> => |len| OldStore::make(len)
+    New | inner::New<usize> => |len| inner::New::make(len)
 );
 
 const STRATEGY_LEN: usize = 10;
@@ -81,5 +81,31 @@ proptest! {
     #[test]
     fn prop_new(seq in seq_strategy()) {
         inner::<New>(seq)
+    }
+
+    #[test]
+    fn non_zero(seq in seq_strategy()) {
+        let (vec, len) = seq;
+
+        let cast = |x: &usize| NonZeroUsize::new(*x).unwrap();
+
+        let mut store = inner::New::new(len);
+        let mut root = None;
+        for item in &vec {
+            root = store.attach(root, cast(item));
+        }
+
+        for item in &vec {
+            assert!(store.is_contains(root.unwrap(), cast(item)));
+        }
+
+        for item in &vec {
+            root = store.detach(root, cast(item));
+            if let Some(root) = root {
+                assert!(!store.is_contains(root, cast(item)));
+            }
+        }
+
+        assert!(store.iter().all(|node| *node == Default::default()));
     }
 }

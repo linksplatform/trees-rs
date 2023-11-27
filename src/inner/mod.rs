@@ -5,7 +5,7 @@ mod store;
 pub trait BTree {
     type Item;
 
-    fn new(len: usize) -> Self;
+    fn make(len: usize) -> Self;
 
     fn _attach(&mut self, root: &mut Option<Self::Item>, node: Self::Item);
 

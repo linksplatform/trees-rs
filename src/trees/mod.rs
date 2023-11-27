@@ -10,6 +10,7 @@ macro_rules! tri {
     };
 }
 
-pub use {no_recur_szb_tree::NoRecurSzbTree, szb_tree::SzbTree};
+pub use {leaf::Leaf, no_recur_szb_tree::NoRecurSzbTree, szb_tree::SzbTree};
 
+mod leaf;
 pub mod new;

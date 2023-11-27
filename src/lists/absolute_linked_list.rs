@@ -1,6 +1,6 @@
 use crate::{LinkType, LinkedList};
 
-pub trait AbsoluteLinkedList<T: LinkType>: LinkedList<T> {
+pub trait AbsoluteLinkedList<T: LinkType + funty::Unsigned>: LinkedList<T> {
     fn get_first(&self) -> T;
     fn get_last(&self) -> T;
     fn get_size(&self) -> T;

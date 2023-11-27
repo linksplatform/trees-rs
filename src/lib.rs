@@ -1,4 +1,3 @@
-#![feature(default_free_fn)]
 #![feature(try_blocks)]
 // fixme: #![no_std]
 #![deny(unused_must_use)]
@@ -11,7 +10,7 @@ pub use {
         AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkedList, RelativeCircularLinkedList,
         RelativeLinkedList,
     },
-    trees::{new, NoRecurSzbTree, SzbTree},
+    trees::{new, Leaf, NoRecurSzbTree, SzbTree},
 };
 
 #[cfg(any(new_api, test))]
@@ -31,7 +30,7 @@ macro_rules! named {
 }
 
 // bridge to old api
-pub trait LinkType: platform_data::LinkType + funty::Unsigned {
+pub trait LinkType: platform_data::LinkType {
     named! {
         zero => 0
         one => 1
@@ -39,4 +38,4 @@ pub trait LinkType: platform_data::LinkType + funty::Unsigned {
     }
 }
 
-impl<All> LinkType for All where All: platform_data::LinkType + funty::Unsigned {}
+impl<All> LinkType for All where All: platform_data::LinkType {}

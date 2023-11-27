@@ -1,11 +1,8 @@
-use {
-    platform_data::LinkType,
-    std::{ptr, ptr::NonNull},
-};
+use {super::Leaf, std::ops::Range};
 
 #[derive(Debug)]
 #[repr(C)]
-pub struct Node<T: LinkType> {
+pub struct Node<T> {
     pub size: usize,
     pub left: Option<T>,
     pub right: Option<T>,
@@ -21,7 +18,9 @@ macro_rules! fn_set {
     )*};
 }
 
-pub trait Tree<T: LinkType> {
+pub trait Tree<T: Leaf> {
+    fn ptr_range(&self) -> Range<*const u8>;
+
     fn get(&self, idx: T) -> Option<Node<T>>;
     fn set(&mut self, idx: T, node: Node<T>);
 
@@ -31,7 +30,7 @@ pub trait Tree<T: LinkType> {
     fn is_left_of(&self, first: T, second: T) -> bool;
 
     fn is_right_of(&self, first: T, second: T) -> bool {
-        first.addr() != second.addr() && !self.is_left_of(first, second)
+        !first.same(second) && !self.is_left_of(first, second)
     }
 
     fn size(&self, idx: T) -> Option<usize> {
@@ -138,7 +137,7 @@ pub trait Tree<T: LinkType> {
     }
 }
 
-pub unsafe trait NoRecur<T: LinkType>: Tree<T> {
+pub unsafe trait NoRecur<T: Leaf>: Tree<T> {
     fn attach(&mut self, root: Option<T>, idx: T) -> Option<T> {
         if let Some(mut root) = root {
             unsafe { attach_impl(self, &mut root, idx)? }
@@ -158,14 +157,11 @@ pub unsafe trait NoRecur<T: LinkType>: Tree<T> {
             Some(root)
         }
     }
-
-    #[must_use]
-    unsafe fn remove_idx(&mut self, addr: *mut T) -> bool;
 }
 
 const UNCHECKED_MESSAGE: &str = "unchecked...";
 
-unsafe fn attach_impl<T: LinkType, Tree>(tree: &mut Tree, mut root: *mut T, idx: T) -> Option<()>
+unsafe fn attach_impl<T: Leaf, Tree>(tree: &mut Tree, mut root: *mut T, idx: T) -> Option<()>
 where
     Tree: NoRecur<T> + ?Sized,
 {
@@ -250,7 +246,7 @@ where
     }
 }
 
-unsafe fn detach_impl<T: LinkType, Tree>(tree: &mut Tree, mut root: *mut T, idx: T) -> Option<bool>
+unsafe fn detach_impl<T: Leaf, Tree>(tree: &mut Tree, mut root: *mut T, idx: T) -> Option<bool>
 where
     Tree: NoRecur<T> + ?Sized,
 {
@@ -319,8 +315,7 @@ where
                 (_, Some(right)) => *root = *right,
                 _ => {
                     tree.clear(idx);
-                    // println!("ZORRO");
-                    return Some(tree.remove_idx(root));
+                    return Some(Leaf::remove_idx(root, tree.ptr_range()));
                 }
             };
             tree.clear(idx);
