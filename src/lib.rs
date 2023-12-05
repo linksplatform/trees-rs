@@ -3,21 +3,15 @@
 #![deny(unused_must_use)]
 
 mod lists;
-mod trees;
+pub mod trees;
 
 pub use {
     lists::{
         AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkedList, RelativeCircularLinkedList,
         RelativeLinkedList,
     },
-    trees::{new, Leaf, NoRecurSzbTree, SzbTree},
+    trees::{Leaf, NoRecur, Tree},
 };
-
-#[cfg(any(new_api, test))]
-pub mod inner;
-
-#[cfg(any(new_api, test))]
-pub use inner::{BTree, New, OldStore};
 
 macro_rules! named {
     ($($name:ident => $val:expr)*) => {

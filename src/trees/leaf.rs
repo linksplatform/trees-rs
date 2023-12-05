@@ -1,5 +1,32 @@
 use std::{mem, num::*, ops::Range};
 
+/// Types that can be stored at tree's nodes
+///
+/// # Safety
+/// - the [`remove_idx`] implementation should return `true`
+/// if the value of element at provided address matches the [root at stack].\
+/// Example of `NonZero` implementation:
+/// ```
+/// # use std::{mem, ops::Range};
+/// # struct Compile;
+/// # impl Compile {
+/// unsafe fn remove_idx(addr: *mut Self, from: Range<*const u8>) -> bool {
+///     let addr = addr as *const u8;
+///     // addr contains in tree addr space - it's inner root
+///     if from.contains(&addr) {
+///         let ptr = addr.sub(mem::size_of::<Self>()) as *mut Option<Self>;
+///         *ptr = None;
+///         false
+///     } else {
+///         // it's root at the stack
+///         true
+///     }
+/// }
+/// # }
+/// ```
+///
+/// [`remove_idx`]: Self::remove_idx
+/// [root at stack]: #
 pub unsafe trait Leaf: Copy {
     #[must_use] // wait for: arbitrary_self_types
     unsafe fn remove_idx(addr: *mut Self, from: Range<*const u8>) -> bool;
