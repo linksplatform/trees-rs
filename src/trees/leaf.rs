@@ -32,18 +32,18 @@ pub unsafe trait Leaf: Copy {
     unsafe fn remove_idx(addr: *mut Self, from: Range<*const u8>) -> bool;
 
     #[must_use]
-    fn addr(self) -> usize;
+    fn addr_of(self) -> usize;
 
     #[must_use]
     fn same(self, other: Self) -> bool {
-        self.addr() == other.addr()
+        self.addr_of() == other.addr_of()
     }
 }
 
 macro_rules! impl_integral {
     ($($ty:ty)*) => {$(
         unsafe impl Leaf for $ty {
-            #[inline(always)]
+            #[inline]
             #[allow(clippy::size_of_in_element_count)] // false positive?
             unsafe fn remove_idx(addr: *mut Self, from: Range<*const u8>) -> bool {
                 let addr = addr as *const u8;
@@ -58,12 +58,12 @@ macro_rules! impl_integral {
                 }
             }
 
-            #[inline(always)]
-            fn addr(self) -> usize {
+            #[inline]
+            fn addr_of(self) -> usize {
                 self as usize
             }
 
-            #[inline(always)]
+            #[inline]
             fn same(self, other: Self) -> bool {
                 self == other
             }
@@ -74,7 +74,7 @@ macro_rules! impl_integral {
 macro_rules! impl_non_zero {
     ($($ty:ty)*) => {$(
         unsafe impl Leaf for $ty {
-            #[inline(always)]
+            #[inline]
             unsafe fn remove_idx(addr: *mut Self, from: Range<*const u8>) -> bool {
                 let addr = addr as *const u8;
                 if from.contains(&addr) {
@@ -88,12 +88,12 @@ macro_rules! impl_non_zero {
                 }
             }
 
-            #[inline(always)]
-            fn addr(self) -> usize {
+            #[inline]
+            fn addr_of(self) -> usize {
                 self.get() as usize
             }
 
-            #[inline(always)]
+            #[inline]
             fn same(self, other: Self) -> bool {
                 self == other
             }
