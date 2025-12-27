@@ -1387,4 +1387,289 @@ mod no_recur_szb_tree_tests {
             assert_eq!(root, 0);
         }
     }
+
+    // Additional edge case tests for full coverage
+
+    #[test]
+    fn test_attach_left_right_rotation_edge_case() {
+        // Tests the path where we need a left-right double rotation on left side
+        let mut tree = TestTree::new(30);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Build a tree that will trigger left-right rotation
+            // Start with 10, then 5, then insert 8 (between 5 and 10)
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 5);
+            tree.attach(&mut root, 8); // This goes right of 5, should trigger LR rotation
+
+            assert!(tree.contains(10, root));
+            assert!(tree.contains(5, root));
+            assert!(tree.contains(8, root));
+            assert_eq!(tree.get_size(root), 3);
+        }
+    }
+
+    #[test]
+    fn test_attach_descend_left_without_rotation() {
+        // Tests the case where we descend left without rotation
+        let mut tree = TestTree::new(40);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Build a more balanced tree first
+            tree.attach(&mut root, 20);
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 30);
+            tree.attach(&mut root, 25);
+            tree.attach(&mut root, 35);
+            // Now insert something that needs to go left but doesn't trigger rotation
+            tree.attach(&mut root, 5);
+            tree.attach(&mut root, 2);
+
+            assert!(tree.contains(2, root));
+            assert_eq!(tree.get_size(root), 7);
+        }
+    }
+
+    #[test]
+    fn test_attach_special_case_left_right_empty() {
+        // Tests the special case in attach_core where left_right_size == 0 and right_size == 0
+        let mut tree = TestTree::new(20);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Create specific tree structure
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 5);
+            // Now insert 7 which is right of 5 but left of 10
+            // With just 2 nodes, this triggers the special case
+            tree.attach(&mut root, 7);
+
+            assert!(tree.contains(10, root));
+            assert!(tree.contains(5, root));
+            assert!(tree.contains(7, root));
+        }
+    }
+
+    #[test]
+    fn test_attach_right_left_rotation_edge_case() {
+        // Tests the path where we need a right-left double rotation on right side
+        let mut tree = TestTree::new(30);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Build a tree that will trigger right-left rotation
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 20);
+            tree.attach(&mut root, 15); // Between 10 and 20, should trigger RL rotation
+
+            assert!(tree.contains(10, root));
+            assert!(tree.contains(15, root));
+            assert!(tree.contains(20, root));
+            assert_eq!(tree.get_size(root), 3);
+        }
+    }
+
+    #[test]
+    fn test_attach_descend_right_without_rotation() {
+        // Tests the case where we descend right without rotation
+        let mut tree = TestTree::new(40);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Build a balanced tree
+            tree.attach(&mut root, 20);
+            tree.attach(&mut root, 30);
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 5);
+            tree.attach(&mut root, 15);
+            // Insert on the right side, descending
+            tree.attach(&mut root, 35);
+            tree.attach(&mut root, 40);
+
+            assert!(tree.contains(40, root));
+            assert_eq!(tree.get_size(root), 7);
+        }
+    }
+
+    #[test]
+    fn test_detach_with_double_rotation_left() {
+        // Tests detach causing double rotation on left side
+        let mut tree = TestTree::new(40);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Build larger tree
+            for i in [20, 10, 30, 5, 15, 25, 35, 3, 8, 13, 17] {
+                tree.attach(&mut root, i);
+            }
+
+            // Detach to trigger specific paths
+            tree.detach(&mut root, 3);
+            tree.detach(&mut root, 5);
+            tree.detach(&mut root, 8);
+
+            assert!(!tree.contains(3, root));
+            assert!(!tree.contains(5, root));
+            assert!(!tree.contains(8, root));
+        }
+    }
+
+    #[test]
+    fn test_detach_with_double_rotation_right() {
+        // Tests detach causing double rotation on right side
+        let mut tree = TestTree::new(50);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Build larger tree
+            for i in [20, 10, 30, 5, 15, 25, 35, 32, 38, 28, 27] {
+                tree.attach(&mut root, i);
+            }
+
+            // Detach to trigger specific paths
+            tree.detach(&mut root, 35);
+            tree.detach(&mut root, 38);
+            tree.detach(&mut root, 32);
+
+            assert!(!tree.contains(35, root));
+            assert!(!tree.contains(38, root));
+            assert!(!tree.contains(32, root));
+        }
+    }
+
+    #[test]
+    fn test_detach_with_left_only_child() {
+        // Tests detach where replacement comes from left subtree
+        let mut tree = TestTree::new(30);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Create tree where left subtree is larger
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 5);
+            tree.attach(&mut root, 15);
+            tree.attach(&mut root, 3);
+            tree.attach(&mut root, 7);
+            tree.attach(&mut root, 2);
+            tree.attach(&mut root, 4);
+
+            // Detach a node that will use replacement from left (larger) subtree
+            tree.detach(&mut root, 5);
+
+            assert!(!tree.contains(5, root));
+            assert!(tree.contains(3, root));
+            assert!(tree.contains(7, root));
+        }
+    }
+
+    #[test]
+    fn test_detach_node_with_left_child_only() {
+        // Tests the path where we set *root = *left
+        let mut tree = TestTree::new(20);
+        let mut root: usize = 0;
+
+        unsafe {
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 5);
+            tree.attach(&mut root, 15);
+            tree.attach(&mut root, 3);
+
+            // Remove 5, which has only left child (3)
+            tree.detach(&mut root, 5);
+
+            assert!(!tree.contains(5, root));
+            assert!(tree.contains(3, root));
+        }
+    }
+
+    #[test]
+    fn test_large_sequential_insert() {
+        // Tests inserting many nodes in ascending order
+        let mut tree = TestTree::new(50);
+        let mut root: usize = 0;
+
+        unsafe {
+            for i in 1..=20 {
+                tree.attach(&mut root, i);
+            }
+
+            for i in 1..=20 {
+                assert!(tree.contains(i, root), "Node {} missing", i);
+            }
+            assert_eq!(tree.get_size(root), 20);
+        }
+    }
+
+    #[test]
+    fn test_large_reverse_insert() {
+        // Tests inserting many nodes in descending order
+        let mut tree = TestTree::new(50);
+        let mut root: usize = 0;
+
+        unsafe {
+            for i in (1..=20).rev() {
+                tree.attach(&mut root, i);
+            }
+
+            for i in 1..=20 {
+                assert!(tree.contains(i, root), "Node {} missing", i);
+            }
+            assert_eq!(tree.get_size(root), 20);
+        }
+    }
+
+    #[test]
+    fn test_alternating_insert() {
+        // Tests inserting nodes in alternating pattern
+        let mut tree = TestTree::new(50);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Insert 10, 1, 20, 2, 19, 3, 18, etc.
+            let mut low = 1;
+            let mut high = 20;
+            for i in 0..20 {
+                if i % 2 == 0 {
+                    tree.attach(&mut root, high);
+                    high -= 1;
+                } else {
+                    tree.attach(&mut root, low);
+                    low += 1;
+                }
+            }
+
+            for i in 1..=20 {
+                assert!(tree.contains(i, root), "Node {} missing", i);
+            }
+        }
+    }
+
+    #[test]
+    fn test_detach_from_large_tree() {
+        // Tests various detach patterns on large tree
+        let mut tree = TestTree::new(100);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Build tree with 50 nodes
+            for i in 1..=50 {
+                tree.attach(&mut root, i);
+            }
+
+            // Detach every other node
+            for i in (1..=50).step_by(2) {
+                tree.detach(&mut root, i);
+            }
+
+            // Check remaining nodes
+            for i in (2..=50).step_by(2) {
+                assert!(tree.contains(i, root), "Node {} should be present", i);
+            }
+            for i in (1..=49).step_by(2) {
+                assert!(!tree.contains(i, root), "Node {} should be absent", i);
+            }
+        }
+    }
 }
