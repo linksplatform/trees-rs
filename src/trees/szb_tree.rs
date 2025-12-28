@@ -1,4 +1,4 @@
-use platform_data::LinkType;
+use crate::LinkType;
 
 pub trait SzbTree<T: LinkType> {
     unsafe fn get_mut_left_reference(&mut self, node: T) -> *mut T;

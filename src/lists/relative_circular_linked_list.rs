@@ -1,5 +1,4 @@
-use crate::RelativeLinkedList;
-use platform_data::LinkType;
+use crate::{LinkType, RelativeLinkedList};
 
 pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
     fn attach_before(&mut self, head: T, base_element: T, new_element: T) {

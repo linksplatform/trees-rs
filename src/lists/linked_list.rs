@@ -1,4 +1,4 @@
-use platform_data::LinkType;
+use crate::LinkType;
 
 pub trait LinkedList<T: LinkType> {
     fn get_previous(&self, element: T) -> T;

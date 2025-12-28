@@ -1,5 +1,4 @@
-use crate::AbsoluteLinkedList;
-use platform_data::LinkType;
+use crate::{AbsoluteLinkedList, LinkType};
 
 pub trait AbsoluteCircularLinkedList<T: LinkType>: AbsoluteLinkedList<T> {
     fn attach_before(&mut self, base_element: T, new_element: T) {
