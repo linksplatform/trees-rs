@@ -1,8 +1,8 @@
 //! Comprehensive tests for 100% code coverage of platform-trees
 
 use crate::{
-    AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkedList, LinkType, NoRecurSzbTree,
-    RelativeCircularLinkedList, RelativeLinkedList, SzbTree,
+    AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkType, LinkedList, NoRecurSizeBalancedTree,
+    RelativeCircularLinkedList, RelativeLinkedList, SizeBalancedTree,
 };
 
 // =============================================================================
@@ -147,7 +147,7 @@ impl RelativeLinkedList<usize> for TestRelativeList {
 
 impl RelativeCircularLinkedList<usize> for TestRelativeList {}
 
-/// A tree node structure for testing SzbTree
+/// A tree node structure for testing SizeBalancedTree
 #[derive(Debug, Clone, Copy, Default)]
 struct TreeNode {
     left: usize,
@@ -155,7 +155,7 @@ struct TreeNode {
     size: usize,
 }
 
-/// A simple SzbTree implementation for testing
+/// A simple SizeBalancedTree implementation for testing
 struct TestTree {
     nodes: Vec<TreeNode>,
 }
@@ -168,7 +168,7 @@ impl TestTree {
     }
 }
 
-impl SzbTree<usize> for TestTree {
+impl SizeBalancedTree<usize> for TestTree {
     unsafe fn get_mut_left_reference(&mut self, node: usize) -> *mut usize {
         &mut self.nodes[node].left
     }
@@ -218,7 +218,7 @@ impl SzbTree<usize> for TestTree {
     }
 }
 
-impl NoRecurSzbTree<usize> for TestTree {}
+impl NoRecurSizeBalancedTree<usize> for TestTree {}
 
 // =============================================================================
 // LinkType trait tests
@@ -773,11 +773,11 @@ mod relative_circular_linked_list_tests {
 }
 
 // =============================================================================
-// SzbTree trait tests
+// SizeBalancedTree trait tests
 // =============================================================================
 
 #[cfg(test)]
-mod szb_tree_tests {
+mod size_balanced_tree_tests {
     use super::*;
 
     #[test]
@@ -1149,11 +1149,11 @@ mod szb_tree_tests {
 }
 
 // =============================================================================
-// NoRecurSzbTree trait tests
+// NoRecurSizeBalancedTree trait tests
 // =============================================================================
 
 #[cfg(test)]
-mod no_recur_szb_tree_tests {
+mod no_recur_size_balanced_tree_tests {
     use super::*;
 
     #[test]

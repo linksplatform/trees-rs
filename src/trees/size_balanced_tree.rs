@@ -1,6 +1,6 @@
 use crate::LinkType;
 
-pub trait SzbTree<T: LinkType> {
+pub trait SizeBalancedTree<T: LinkType> {
     unsafe fn get_mut_left_reference(&mut self, node: T) -> *mut T;
 
     unsafe fn get_mut_right_reference(&mut self, node: T) -> *mut T;
