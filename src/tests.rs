@@ -1,8 +1,8 @@
 //! Comprehensive tests for 100% code coverage of platform-trees
 
 use crate::{
-    AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkType, LinkedList, NoRecurSizeBalancedTree,
-    RelativeCircularLinkedList, RelativeLinkedList, SizeBalancedTree,
+    AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkType, LinkedList,
+    RecursiveSizeBalancedTree, RelativeCircularLinkedList, RelativeLinkedList, SizeBalancedTree,
 };
 
 // =============================================================================
@@ -168,7 +168,7 @@ impl TestTree {
     }
 }
 
-impl SizeBalancedTree<usize> for TestTree {
+impl RecursiveSizeBalancedTree<usize> for TestTree {
     unsafe fn get_mut_left_reference(&mut self, node: usize) -> *mut usize {
         &mut self.nodes[node].left
     }
@@ -218,7 +218,7 @@ impl SizeBalancedTree<usize> for TestTree {
     }
 }
 
-impl NoRecurSizeBalancedTree<usize> for TestTree {}
+impl SizeBalancedTree<usize> for TestTree {}
 
 // =============================================================================
 // LinkType trait tests

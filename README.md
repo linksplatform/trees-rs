@@ -6,18 +6,18 @@ This library provides low-level tree and linked list data structure traits for t
 
 ## Overview
 
-`platform-trees` is a Rust implementation of tree and linked list methods used by the Links Platform. It provides generic traits that can be implemented for various storage backends, enabling efficient tree-based data structures with size-balanced binary (SZB) tree algorithms.
+`platform-trees` is a Rust implementation of tree and linked list methods used by the Links Platform. It provides generic traits that can be implemented for various storage backends, enabling efficient tree-based data structures with size-balanced tree algorithms.
 
 ## Features
 
 ### Tree Structures
-- **`SizeBalancedTree`** - Size-balanced binary tree trait with core operations:
+- **`RecursiveSizeBalancedTree`** - Base size-balanced binary tree trait with core operations:
   - Node navigation (`get_left`, `get_right`, `get_next`, `get_previous`)
   - Tree rotations (`left_rotate`, `right_rotate`)
   - Size management (`get_size`, `fix_size`, `inc_size`, `dec_size`)
   - Tree queries (`contains`, `get_leftest`, `get_rightest`)
 
-- **`NoRecurSizeBalancedTree`** - Non-recursive size-balanced tree trait extending `SizeBalancedTree`:
+- **`SizeBalancedTree`** - Non-recursive size-balanced tree trait extending `RecursiveSizeBalancedTree`:
   - Iterative `attach` and `detach` operations
   - Avoids stack overflow on deep trees
   - Maintains tree balance during modifications
@@ -50,10 +50,10 @@ Add the dependency to your `Cargo.toml`:
 platform-trees = "0.1.0-beta.1"
 ```
 
-### Example: Implementing SizeBalancedTree
+### Example: Implementing RecursiveSizeBalancedTree
 
 ```rust
-use platform_trees::{SizeBalancedTree, NoRecurSizeBalancedTree};
+use platform_trees::{RecursiveSizeBalancedTree, SizeBalancedTree};
 use platform_data::LinkType;
 
 // Define your tree node storage
@@ -68,8 +68,8 @@ struct Node {
     // ... your data
 }
 
-// Implement the SizeBalancedTree trait for your storage type
-impl SizeBalancedTree<usize> for MyTreeStorage {
+// Implement the RecursiveSizeBalancedTree trait for your storage type
+impl RecursiveSizeBalancedTree<usize> for MyTreeStorage {
     unsafe fn get_mut_left_reference(&mut self, node: usize) -> *mut usize {
         &mut self.nodes[node].left
     }
@@ -119,8 +119,8 @@ impl SizeBalancedTree<usize> for MyTreeStorage {
     }
 }
 
-// Implement NoRecurSizeBalancedTree to get attach/detach operations
-impl NoRecurSizeBalancedTree<usize> for MyTreeStorage {}
+// Implement SizeBalancedTree to get attach/detach operations
+impl SizeBalancedTree<usize> for MyTreeStorage {}
 ```
 
 ### Example: Implementing LinkedList
@@ -179,8 +179,8 @@ impl AbsoluteCircularLinkedList<usize> for MyListStorage {}
 
 | Trait | Description |
 |-------|-------------|
-| `SizeBalancedTree<T>` | Base trait for size-balanced binary trees with rotation and navigation operations |
-| `NoRecurSizeBalancedTree<T>` | Extension trait providing iterative attach/detach without recursion |
+| `RecursiveSizeBalancedTree<T>` | Base trait for size-balanced binary trees with rotation and navigation operations |
+| `SizeBalancedTree<T>` | Extension trait providing iterative attach/detach without recursion |
 
 ### List Traits
 
