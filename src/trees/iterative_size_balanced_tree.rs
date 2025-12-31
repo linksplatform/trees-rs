@@ -1,6 +1,6 @@
-use crate::{LinkType, SzbTree};
+use crate::{LinkType, RecursiveSizeBalancedTree};
 
-pub trait NoRecurSzbTree<T: LinkType>: SzbTree<T> {
+pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
     unsafe fn attach(&mut self, root: *mut T, node: T) {
         if *root == T::funty(0) {
             self.set_size(node, T::funty(1));

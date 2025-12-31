@@ -13,4 +13,4 @@ pub use lists::{
     RelativeLinkedList,
 };
 
-pub use trees::{NoRecurSzbTree, SzbTree};
+pub use trees::{IterativeSizeBalancedTree, RecursiveSizeBalancedTree};

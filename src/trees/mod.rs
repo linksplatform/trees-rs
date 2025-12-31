@@ -1,5 +1,5 @@
-mod no_recur_szb_tree;
-mod szb_tree;
+mod iterative_size_balanced_tree;
+mod recursive_size_balanced_tree;
 
-pub use no_recur_szb_tree::NoRecurSzbTree;
-pub use szb_tree::SzbTree;
+pub use iterative_size_balanced_tree::IterativeSizeBalancedTree;
+pub use recursive_size_balanced_tree::RecursiveSizeBalancedTree;
