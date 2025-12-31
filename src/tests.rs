@@ -1,8 +1,8 @@
 //! Comprehensive tests for 100% code coverage of platform-trees
 
 use crate::{
-    AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkType, LinkedList,
-    RecursiveSizeBalancedTree, RelativeCircularLinkedList, RelativeLinkedList, SizeBalancedTree,
+    AbsoluteCircularLinkedList, AbsoluteLinkedList, IterativeSizeBalancedTree, LinkType,
+    LinkedList, RecursiveSizeBalancedTree, RelativeCircularLinkedList, RelativeLinkedList,
 };
 
 // =============================================================================
@@ -218,7 +218,7 @@ impl RecursiveSizeBalancedTree<usize> for TestTree {
     }
 }
 
-impl SizeBalancedTree<usize> for TestTree {}
+impl IterativeSizeBalancedTree<usize> for TestTree {}
 
 // =============================================================================
 // LinkType trait tests
@@ -1149,11 +1149,11 @@ mod size_balanced_tree_tests {
 }
 
 // =============================================================================
-// NoRecurSizeBalancedTree trait tests
+// IterativeSizeBalancedTree trait tests
 // =============================================================================
 
 #[cfg(test)]
-mod no_recur_size_balanced_tree_tests {
+mod iterative_size_balanced_tree_tests {
     use super::*;
 
     #[test]

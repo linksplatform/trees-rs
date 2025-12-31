@@ -17,7 +17,7 @@ This library provides low-level tree and linked list data structure traits for t
   - Size management (`get_size`, `fix_size`, `inc_size`, `dec_size`)
   - Tree queries (`contains`, `get_leftest`, `get_rightest`)
 
-- **`SizeBalancedTree`** - Non-recursive size-balanced tree trait extending `RecursiveSizeBalancedTree`:
+- **`IterativeSizeBalancedTree`** - Iterative size-balanced tree trait extending `RecursiveSizeBalancedTree`:
   - Iterative `attach` and `detach` operations
   - Avoids stack overflow on deep trees
   - Maintains tree balance during modifications
@@ -53,7 +53,7 @@ platform-trees = "0.1.0-beta.1"
 ### Example: Implementing RecursiveSizeBalancedTree
 
 ```rust
-use platform_trees::{RecursiveSizeBalancedTree, SizeBalancedTree};
+use platform_trees::{IterativeSizeBalancedTree, RecursiveSizeBalancedTree};
 use platform_data::LinkType;
 
 // Define your tree node storage
@@ -119,8 +119,8 @@ impl RecursiveSizeBalancedTree<usize> for MyTreeStorage {
     }
 }
 
-// Implement SizeBalancedTree to get attach/detach operations
-impl SizeBalancedTree<usize> for MyTreeStorage {}
+// Implement IterativeSizeBalancedTree to get attach/detach operations
+impl IterativeSizeBalancedTree<usize> for MyTreeStorage {}
 ```
 
 ### Example: Implementing LinkedList
@@ -180,7 +180,7 @@ impl AbsoluteCircularLinkedList<usize> for MyListStorage {}
 | Trait | Description |
 |-------|-------------|
 | `RecursiveSizeBalancedTree<T>` | Base trait for size-balanced binary trees with rotation and navigation operations |
-| `SizeBalancedTree<T>` | Extension trait providing iterative attach/detach without recursion |
+| `IterativeSizeBalancedTree<T>` | Extension trait providing iterative attach/detach without recursion |
 
 ### List Traits
 
