@@ -147,7 +147,7 @@ impl RelativeLinkedList<usize> for TestRelativeList {
 
 impl RelativeCircularLinkedList<usize> for TestRelativeList {}
 
-/// A tree node structure for testing SizeBalancedTree
+/// A tree node structure for testing `SizeBalancedTree`
 #[derive(Debug, Clone, Copy, Default)]
 struct TreeNode {
     left: usize,
@@ -155,7 +155,7 @@ struct TreeNode {
     size: usize,
 }
 
-/// A simple SizeBalancedTree implementation for testing
+/// A simple `SizeBalancedTree` implementation for testing
 struct TestTree {
     nodes: Vec<TreeNode>,
 }
@@ -250,9 +250,9 @@ mod link_type_tests {
     fn test_funty_various_values() {
         for i in 0..=255u8 {
             assert_eq!(u8::funty(i), i);
-            assert_eq!(u16::funty(i), i as u16);
-            assert_eq!(u32::funty(i), i as u32);
-            assert_eq!(u64::funty(i), i as u64);
+            assert_eq!(u16::funty(i), u16::from(i));
+            assert_eq!(u32::funty(i), u32::from(i));
+            assert_eq!(u64::funty(i), u64::from(i));
             assert_eq!(usize::funty(i), i as usize);
         }
     }
@@ -751,10 +751,9 @@ mod relative_circular_linked_list_tests {
 
     #[test]
     fn test_multiple_lists() {
-        let mut list = TestRelativeList::new(20);
-
         const HEAD1: usize = 1;
         const HEAD2: usize = 10;
+        let mut list = TestRelativeList::new(20);
 
         list.attach_as_first(HEAD1, 2);
         list.attach_as_last(HEAD1, 3);
@@ -1331,7 +1330,7 @@ mod iterative_size_balanced_tree_tests {
 
             // Verify all nodes present
             for i in [10, 5, 15, 3, 7, 12, 17] {
-                assert!(tree.contains(i, root), "Node {} should be present", i);
+                assert!(tree.contains(i, root), "Node {i} should be present");
             }
 
             // Remove some nodes
@@ -1363,7 +1362,7 @@ mod iterative_size_balanced_tree_tests {
 
             // All nodes should be reachable
             for i in 1..=10 {
-                assert!(tree.contains(i, root), "Node {} should be present", i);
+                assert!(tree.contains(i, root), "Node {i} should be present");
             }
 
             assert_eq!(tree.get_size(root), 10);
@@ -1596,7 +1595,7 @@ mod iterative_size_balanced_tree_tests {
             }
 
             for i in 1..=20 {
-                assert!(tree.contains(i, root), "Node {} missing", i);
+                assert!(tree.contains(i, root), "Node {i} missing");
             }
             assert_eq!(tree.get_size(root), 20);
         }
@@ -1614,7 +1613,7 @@ mod iterative_size_balanced_tree_tests {
             }
 
             for i in 1..=20 {
-                assert!(tree.contains(i, root), "Node {} missing", i);
+                assert!(tree.contains(i, root), "Node {i} missing");
             }
             assert_eq!(tree.get_size(root), 20);
         }
@@ -1641,7 +1640,7 @@ mod iterative_size_balanced_tree_tests {
             }
 
             for i in 1..=20 {
-                assert!(tree.contains(i, root), "Node {} missing", i);
+                assert!(tree.contains(i, root), "Node {i} missing");
             }
         }
     }
@@ -1665,10 +1664,10 @@ mod iterative_size_balanced_tree_tests {
 
             // Check remaining nodes
             for i in (2..=50).step_by(2) {
-                assert!(tree.contains(i, root), "Node {} should be present", i);
+                assert!(tree.contains(i, root), "Node {i} should be present");
             }
             for i in (1..=49).step_by(2) {
-                assert!(!tree.contains(i, root), "Node {} should be absent", i);
+                assert!(!tree.contains(i, root), "Node {i} should be absent");
             }
         }
     }

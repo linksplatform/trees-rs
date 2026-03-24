@@ -10,9 +10,9 @@ pub trait AbsoluteLinkedList<T: LinkType>: LinkedList<T> {
     fn set_size(&mut self, size: T);
 
     fn inc_size(&mut self) {
-        self.set_size(self.get_size() + T::funty(1))
+        self.set_size(self.get_size() + T::funty(1));
     }
     fn dec_size(&mut self) {
-        self.set_size(self.get_size() - T::funty(1))
+        self.set_size(self.get_size() - T::funty(1));
     }
 }
