@@ -9,12 +9,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
-name = "funty"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
-
-[[package]]
 name = "num-traits"
 version = "0.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -25,9 +19,9 @@ dependencies = [
 
 [[package]]
 name = "platform-num"
-version = "0.1.0-aplha.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64f3d8a90b4188611f2923aec60f0d6a6b49663e5e883fcd5d422f0f24ffb7bd"
+checksum = "dab501bc8b19f2fd4e7a5c17dcc5e123a26721d7ef685b01395250c42bdd774b"
 dependencies = [
  "num-traits",
 ]
@@ -36,6 +30,6 @@ dependencies = [
 name = "platform-trees"
 version = "0.1.0-beta.1"
 dependencies = [
- "funty",
+ "num-traits",
  "platform-num",
 ]
