@@ -13,7 +13,7 @@ The CI/CD auto-release pipeline fails when `Cargo.toml` contains a pre-release s
 - **Trigger**: Push to `main` branch
 - **Failed job**: `Auto Release`
 - **Failed step**: `Collect changelog and bump version` (version-and-commit.rs)
-- **Full logs**: [ci-run-23493592626.log](./ci-run-23493592626.log)
+- **Full logs**: [ci-run-23493592626.txt](./ci-run-23493592626.txt)
 
 ## Timeline of Events
 
