@@ -113,6 +113,7 @@ struct Version {
     major: u32,
     minor: u32,
     patch: u32,
+    #[allow(dead_code)]
     pre_release: Option<String>,
 }
 
