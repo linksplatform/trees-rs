@@ -1,6 +1,6 @@
 [package]
 name = "platform-trees"
-version = "0.1.0-beta.1"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.70"
 authors = ["uselesssgoddess", "Linksplatform Team <linksplatformtechnologies@gmail.com>"]
