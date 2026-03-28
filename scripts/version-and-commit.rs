@@ -113,20 +113,26 @@ struct Version {
     major: u32,
     minor: u32,
     patch: u32,
+    pre_release: Option<String>,
 }
 
 impl Version {
     fn parse(content: &str) -> Option<Version> {
-        let re = Regex::new(r#"(?m)^version\s*=\s*"(\d+)\.(\d+)\.(\d+)""#).ok()?;
+        // Support semver pre-release versions like "0.1.0-beta.1"
+        let re = Regex::new(r#"(?m)^version\s*=\s*"(\d+)\.(\d+)\.(\d+)(?:-([^"]+))?""#).ok()?;
         let caps = re.captures(content)?;
         Some(Version {
             major: caps.get(1)?.as_str().parse().ok()?,
             minor: caps.get(2)?.as_str().parse().ok()?,
             patch: caps.get(3)?.as_str().parse().ok()?,
+            pre_release: caps.get(4).map(|m| m.as_str().to_string()),
         })
     }
 
     fn bump(&self, bump_type: &str) -> String {
+        // If version has a pre-release suffix (e.g. 0.1.0-beta.1),
+        // a bump removes the suffix and bumps the core version.
+        // This follows semver convention: bumping a pre-release produces the next release.
         match bump_type {
             "major" => format!("{}.0.0", self.major + 1),
             "minor" => format!("{}.{}.0", self.major, self.minor + 1),

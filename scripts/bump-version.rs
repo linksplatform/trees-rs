@@ -40,6 +40,7 @@ struct Version {
     major: u32,
     minor: u32,
     patch: u32,
+    pre_release: Option<String>,
 }
 
 impl Version {
@@ -52,7 +53,10 @@ impl Version {
     }
 
     fn to_string(&self) -> String {
-        format!("{}.{}.{}", self.major, self.minor, self.patch)
+        match &self.pre_release {
+            Some(pre) => format!("{}.{}.{}-{}", self.major, self.minor, self.patch, pre),
+            None => format!("{}.{}.{}", self.major, self.minor, self.patch),
+        }
     }
 }
 
@@ -107,13 +111,15 @@ fn get_current_version(cargo_toml_path: &str) -> Result<Version, String> {
     let content = fs::read_to_string(cargo_toml_path)
         .map_err(|e| format!("Failed to read {}: {}", cargo_toml_path, e))?;
 
-    let re = Regex::new(r#"(?m)^version\s*=\s*"(\d+)\.(\d+)\.(\d+)""#).unwrap();
+    // Support semver pre-release versions like "0.1.0-beta.1"
+    let re = Regex::new(r#"(?m)^version\s*=\s*"(\d+)\.(\d+)\.(\d+)(?:-([^"]+))?""#).unwrap();
 
     if let Some(caps) = re.captures(&content) {
         let major: u32 = caps.get(1).unwrap().as_str().parse().unwrap();
         let minor: u32 = caps.get(2).unwrap().as_str().parse().unwrap();
         let patch: u32 = caps.get(3).unwrap().as_str().parse().unwrap();
-        Ok(Version { major, minor, patch })
+        let pre_release = caps.get(4).map(|m| m.as_str().to_string());
+        Ok(Version { major, minor, patch, pre_release })
     } else {
         Err(format!("Could not parse version from {}", cargo_toml_path))
     }
