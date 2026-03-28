@@ -1,62 +1,55 @@
-# trees-rs
+[![Unlicense](https://img.shields.io/badge/license-Unlicense-blue.svg)](http://unlicense.org/)
+[![Crates.io](https://img.shields.io/crates/v/platform-trees?label=crates.io&style=flat)](https://crates.io/crates/platform-trees)
+[![CI/CD Pipeline](https://github.com/linksplatform/trees-rs/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/linksplatform/trees-rs/actions?workflow=CI%2FCD+Pipeline)
+[![Docs.rs](https://docs.rs/platform-trees/badge.svg)](https://docs.rs/platform-trees)
 
-LinksPlatform's Platform.Trees Rust Library.
+# [Trees](https://github.com/linksplatform/trees-rs) for Rust
 
-This library provides low-level tree and linked list data structure traits for the [Links Platform](https://github.com/linksplatform) ecosystem in Rust.
+LinksPlatform's `platform-trees` crate — tree and linked list data
+structure traits for the Links platform.
+
+Crates.io package: [platform-trees](https://crates.io/crates/platform-trees)
 
 ## Overview
 
-`platform-trees` is a Rust implementation of tree and linked list methods used by the Links Platform. It provides generic traits that can be implemented for various storage backends, enabling efficient tree-based data structures with size-balanced tree algorithms.
+This crate provides generic traits for size-balanced binary trees and
+circular linked lists used throughout the LinksPlatform ecosystem:
 
-## Features
+- **`RecursiveSizeBalancedTree<T>`** — Base size-balanced binary tree
+  trait with node navigation, tree rotations, size management, and
+  tree queries (`contains`, `get_leftest`, `get_rightest`).
+- **`IterativeSizeBalancedTree<T>`** — Extends
+  `RecursiveSizeBalancedTree` with iterative `attach` and `detach`
+  operations that avoid stack overflow on deep trees.
+- **`LinkedList<T>`** — Base doubly-linked list trait with
+  `get_previous`, `get_next`, `set_previous`, `set_next`.
+- **`AbsoluteLinkedList<T>`** — Linked list with direct access to
+  `first` and `last` elements and size tracking.
+- **`RelativeLinkedList<T>`** — Linked list with head-relative
+  positioning, supporting multiple independent lists sharing storage.
+- **`AbsoluteCircularLinkedList<T>`** — Circular doubly-linked list
+  with absolute positioning: `attach_before`, `attach_after`,
+  `attach_as_first`, `attach_as_last`, `detach`.
+- **`RelativeCircularLinkedList<T>`** — Circular doubly-linked list
+  with head-relative positioning, supporting multiple circular lists
+  in shared storage.
 
-### Tree Structures
-- **`RecursiveSizeBalancedTree`** - Base size-balanced binary tree trait with core operations:
-  - Node navigation (`get_left`, `get_right`, `get_next`, `get_previous`)
-  - Tree rotations (`left_rotate`, `right_rotate`)
-  - Size management (`get_size`, `fix_size`, `inc_size`, `dec_size`)
-  - Tree queries (`contains`, `get_leftest`, `get_rightest`)
+## Installation
 
-- **`IterativeSizeBalancedTree`** - Iterative size-balanced tree trait extending `RecursiveSizeBalancedTree`:
-  - Iterative `attach` and `detach` operations
-  - Avoids stack overflow on deep trees
-  - Maintains tree balance during modifications
-
-### Linked List Structures
-- **`LinkedList`** - Base doubly-linked list trait with `get_previous`, `get_next`, `set_previous`, `set_next`
-
-- **`AbsoluteLinkedList`** - Linked list with absolute positioning:
-  - Direct access to `first` and `last` elements
-  - Size tracking
-
-- **`RelativeLinkedList`** - Linked list with head-relative positioning:
-  - Multiple independent lists sharing storage
-  - Head parameter for list identification
-
-- **`AbsoluteCircularLinkedList`** - Circular doubly-linked list with absolute positioning:
-  - `attach_before`, `attach_after`, `attach_as_first`, `attach_as_last`
-  - `detach` operation
-
-- **`RelativeCircularLinkedList`** - Circular doubly-linked list with head-relative positioning:
-  - All circular list operations with head parameter
-  - Supports multiple circular lists in shared storage
-
-## Usage
-
-Add the dependency to your `Cargo.toml`:
+Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
 platform-trees = "0.1.0-beta.1"
 ```
 
-### Example: Implementing RecursiveSizeBalancedTree
+## Usage
+
+### Implementing `RecursiveSizeBalancedTree`
 
 ```rust
 use platform_trees::{IterativeSizeBalancedTree, RecursiveSizeBalancedTree};
-use platform_data::LinkType;
 
-// Define your tree node storage
 struct MyTreeStorage {
     nodes: Vec<Node>,
 }
@@ -65,10 +58,8 @@ struct Node {
     left: usize,
     right: usize,
     size: usize,
-    // ... your data
 }
 
-// Implement the RecursiveSizeBalancedTree trait for your storage type
 impl RecursiveSizeBalancedTree<usize> for MyTreeStorage {
     unsafe fn get_mut_left_reference(&mut self, node: usize) -> *mut usize {
         &mut self.nodes[node].left
@@ -119,15 +110,13 @@ impl RecursiveSizeBalancedTree<usize> for MyTreeStorage {
     }
 }
 
-// Implement IterativeSizeBalancedTree to get attach/detach operations
 impl IterativeSizeBalancedTree<usize> for MyTreeStorage {}
 ```
 
-### Example: Implementing LinkedList
+### Implementing `LinkedList`
 
 ```rust
 use platform_trees::{LinkedList, AbsoluteLinkedList, AbsoluteCircularLinkedList};
-use platform_data::LinkType;
 
 struct MyListStorage {
     elements: Vec<ListElement>,
@@ -169,46 +158,31 @@ impl AbsoluteLinkedList<usize> for MyListStorage {
     fn set_size(&mut self, size: usize) { self.size = size; }
 }
 
-// Now AbsoluteCircularLinkedList methods are available
 impl AbsoluteCircularLinkedList<usize> for MyListStorage {}
 ```
 
-## API Reference
+## Depend on
 
-### Tree Traits
+- [num-traits](https://crates.io/crates/num-traits)
+- [platform-num](https://crates.io/crates/platform-num)
+  ([Numbers](https://github.com/linksplatform/Numbers))
 
-| Trait | Description |
-|-------|-------------|
-| `RecursiveSizeBalancedTree<T>` | Base trait for size-balanced binary trees with rotation and navigation operations |
-| `IterativeSizeBalancedTree<T>` | Extension trait providing iterative attach/detach without recursion |
+## Dependent libraries
 
-### List Traits
-
-| Trait | Description |
-|-------|-------------|
-| `LinkedList<T>` | Base trait for doubly-linked list navigation |
-| `AbsoluteLinkedList<T>` | Linked list with global first/last/size |
-| `RelativeLinkedList<T>` | Linked list with head-relative first/last/size |
-| `AbsoluteCircularLinkedList<T>` | Circular list operations with absolute positioning |
-| `RelativeCircularLinkedList<T>` | Circular list operations with relative positioning |
-
-## Dependencies
-
-- [platform-data](https://github.com/linksplatform/Data) - LinksPlatform's core data traits (provides `LinkType`)
-- [funty](https://crates.io/crates/funty) - Fundamental type unification
-
-## Related Projects
-
-- [linksplatform/Collections.Methods](https://github.com/linksplatform/Collections.Methods) - C#/C++ implementation of these methods
-- [linksplatform/Data.Doublets](https://github.com/linksplatform/Data.Doublets) - Doublets data structure using these tree methods
-- [linksplatform/mem-rs](https://github.com/linksplatform/mem-rs) - Memory management for Links Platform Rust libraries
+- [doublets](https://crates.io/crates/doublets)
+  ([doublets-rs](https://github.com/linksplatform/doublets-rs))
 
 ## License
 
-This project is released into the public domain under the [Unlicense](LICENSE).
+This crate is released to the **public domain** under the [Unlicense](http://unlicense.org/).
 
-## Support
+The Unlicense is the most permissive license available — it places no
+restrictions whatsoever on users. You are free to copy, modify, publish,
+use, compile, sell, or distribute this software for any purpose,
+commercial or non-commercial, in any way you choose, with no conditions
+attached.
 
-Ask questions at [stackoverflow.com/tags/links-platform](https://stackoverflow.com/tags/links-platform) (or with tag `links-platform`) to get our free support.
-
-You can also get real-time support on [our official Discord server](https://discord.gg/eEXJyjWv5e).
+Unlike LGPL, which forces users to redistribute modifications under the
+same license and comply with specific obligations (linking restrictions,
+source disclosure for modifications), the Unlicense imposes
+**no obligations at all**. It is truly free as in freedom.
