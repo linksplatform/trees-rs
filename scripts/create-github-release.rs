@@ -127,7 +127,13 @@ fn main() {
         println!("Created GitHub release: {}", tag);
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        if stderr.contains("already exists") {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        // GitHub returns HTTP 422 "Validation Failed" when a release for the tag already exists.
+        // The error text may appear in stderr or stdout depending on the gh CLI version.
+        let combined = format!("{}{}", stderr, stdout);
+        if combined.contains("already exists") || combined.contains("already_exists")
+            || combined.contains("Validation Failed")
+        {
             println!("Release {} already exists, skipping", tag);
         } else {
             eprintln!("Error creating release: {}", stderr);

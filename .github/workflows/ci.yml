@@ -298,7 +298,13 @@ jobs:
         if: steps.check.outputs.should_release == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: rust-script scripts/create-github-release.rs --release-version "${{ steps.current_version.outputs.version }}" --repository "${{ github.repository }}"
+        run: |
+          # Use new_version from version-and-commit when available (tag-checked), else fall back to Cargo.toml version
+          RELEASE_VERSION="${{ steps.version.outputs.new_version }}"
+          if [ -z "$RELEASE_VERSION" ]; then
+            RELEASE_VERSION="${{ steps.current_version.outputs.version }}"
+          fi
+          rust-script scripts/create-github-release.rs --release-version "$RELEASE_VERSION" --repository "${{ github.repository }}"
 
   # === MANUAL INSTANT RELEASE ===
   # Manual release via workflow_dispatch - only after CI passes
