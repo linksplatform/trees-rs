@@ -1041,7 +1041,10 @@ mod iterative_size_balanced_tree_tests {
             }
 
             for &i in &nodes {
-                assert!(tree.contains(i, root), "Node {i} should be present after reinsert");
+                assert!(
+                    tree.contains(i, root),
+                    "Node {i} should be present after reinsert"
+                );
             }
             assert_eq!(tree.get_size(root), 7);
         }
