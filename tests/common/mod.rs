@@ -1,12 +1,14 @@
-//! Comprehensive tests for 100% code coverage of platform-trees
+//! Shared test implementations for integration tests.
+//!
+//! These test fixtures provide concrete implementations of the library's traits
+//! for use in testing. They serve as clear examples of how to implement each trait.
 
-use crate::{
-    AbsoluteCircularLinkedList, AbsoluteLinkedList, IterativeSizeBalancedTree, LinkType,
-    LinkedList, RecursiveSizeBalancedTree, RelativeCircularLinkedList, RelativeLinkedList,
+#![allow(dead_code)]
+
+use platform_trees::{
+    AbsoluteCircularLinkedList, AbsoluteLinkedList, IterativeSizeBalancedTree, LinkedList,
+    RecursiveSizeBalancedTree, RelativeCircularLinkedList, RelativeLinkedList,
 };
-
-mod list_tests;
-mod tree_tests;
 
 // =============================================================================
 // Test implementations
@@ -14,21 +16,21 @@ mod tree_tests;
 
 /// A simple node structure for testing linked lists
 #[derive(Debug, Clone, Copy, Default)]
-struct Node {
-    prev: usize,
-    next: usize,
+pub struct Node {
+    pub prev: usize,
+    pub next: usize,
 }
 
 /// A simple absolute linked list implementation for testing
-struct TestAbsoluteList {
-    nodes: Vec<Node>,
-    first: usize,
-    last: usize,
-    size: usize,
+pub struct TestAbsoluteList {
+    pub nodes: Vec<Node>,
+    pub first: usize,
+    pub last: usize,
+    pub size: usize,
 }
 
 impl TestAbsoluteList {
-    fn new(capacity: usize) -> Self {
+    pub fn new(capacity: usize) -> Self {
         let mut nodes = Vec::with_capacity(capacity + 1);
         // Index 0 is reserved as "null"
         nodes.resize(capacity + 1, Node::default());
@@ -88,14 +90,14 @@ impl AbsoluteLinkedList<usize> for TestAbsoluteList {
 impl AbsoluteCircularLinkedList<usize> for TestAbsoluteList {}
 
 /// A relative linked list implementation for testing (list head stored in element)
-struct TestRelativeList {
-    nodes: Vec<Node>,
+pub struct TestRelativeList {
+    pub nodes: Vec<Node>,
     // Store first/last/size for each "head" element
-    heads: Vec<(usize, usize, usize)>, // (first, last, size)
+    pub heads: Vec<(usize, usize, usize)>, // (first, last, size)
 }
 
 impl TestRelativeList {
-    fn new(capacity: usize) -> Self {
+    pub fn new(capacity: usize) -> Self {
         let mut nodes = Vec::with_capacity(capacity + 1);
         nodes.resize(capacity + 1, Node::default());
         let mut heads = Vec::with_capacity(capacity + 1);
@@ -152,19 +154,19 @@ impl RelativeCircularLinkedList<usize> for TestRelativeList {}
 
 /// A tree node structure for testing `SizeBalancedTree`
 #[derive(Debug, Clone, Copy, Default)]
-struct TreeNode {
-    left: usize,
-    right: usize,
-    size: usize,
+pub struct TreeNode {
+    pub left: usize,
+    pub right: usize,
+    pub size: usize,
 }
 
 /// A simple `SizeBalancedTree` implementation for testing
-struct TestTree {
-    nodes: Vec<TreeNode>,
+pub struct TestTree {
+    pub nodes: Vec<TreeNode>,
 }
 
 impl TestTree {
-    fn new(capacity: usize) -> Self {
+    pub fn new(capacity: usize) -> Self {
         let mut nodes = Vec::with_capacity(capacity + 1);
         nodes.resize(capacity + 1, TreeNode::default());
         Self { nodes }

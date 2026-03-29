@@ -1,4 +1,7 @@
-use super::*;
+mod common;
+
+use common::TestTree;
+use platform_trees::{IterativeSizeBalancedTree, RecursiveSizeBalancedTree};
 
 // =============================================================================
 // SizeBalancedTree trait tests
@@ -896,6 +899,173 @@ mod iterative_size_balanced_tree_tests {
             for i in (1..=49).step_by(2) {
                 assert!(!tree.contains(i, root), "Node {i} should be absent");
             }
+        }
+    }
+
+    #[test]
+    fn test_detach_node_with_right_child_only() {
+        // Tests the path where we set *root = *right (right_size > 0, left_size == 0)
+        let mut tree = TestTree::new(20);
+        let mut root: usize = 0;
+
+        unsafe {
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 5);
+            tree.attach(&mut root, 15);
+            tree.attach(&mut root, 17);
+
+            // Remove 15, which should have only right child (17) after tree balancing
+            tree.detach(&mut root, 15);
+
+            assert!(!tree.contains(15, root));
+            assert!(tree.contains(17, root));
+        }
+    }
+
+    #[test]
+    fn test_attach_right_special_case_empty() {
+        // Tests the special case in attach_core where right_left_size == 0 and left_size == 0
+        let mut tree = TestTree::new(20);
+        let mut root: usize = 0;
+
+        unsafe {
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 20);
+            // Insert 15 which is left of 20 but right of 10
+            // With just 2 nodes, this triggers the right-side special case
+            tree.attach(&mut root, 15);
+
+            assert!(tree.contains(10, root));
+            assert!(tree.contains(15, root));
+            assert!(tree.contains(20, root));
+        }
+    }
+
+    #[test]
+    fn test_detach_replacement_from_right_subtree() {
+        // Tests detach where replacement comes from right subtree (left_size <= right_size)
+        let mut tree = TestTree::new(30);
+        let mut root: usize = 0;
+
+        unsafe {
+            tree.attach(&mut root, 10);
+            tree.attach(&mut root, 5);
+            tree.attach(&mut root, 15);
+            tree.attach(&mut root, 12);
+            tree.attach(&mut root, 17);
+            tree.attach(&mut root, 16);
+            tree.attach(&mut root, 18);
+
+            // Detach 15 which has both children; right subtree is larger
+            tree.detach(&mut root, 15);
+
+            assert!(!tree.contains(15, root));
+            assert!(tree.contains(12, root));
+            assert!(tree.contains(17, root));
+            assert!(tree.contains(16, root));
+            assert!(tree.contains(18, root));
+        }
+    }
+
+    #[test]
+    fn test_get_rightest_single_node() {
+        // Tests get_rightest with a single node (no right child)
+        let mut tree = TestTree::new(10);
+        unsafe {
+            tree.set_size(1, 1);
+            assert_eq!(tree.get_rightest(1), 1);
+        }
+    }
+
+    #[test]
+    fn test_get_leftest_single_node() {
+        // Tests get_leftest with a single node (no left child)
+        let mut tree = TestTree::new(10);
+        unsafe {
+            tree.set_size(1, 1);
+            assert_eq!(tree.get_leftest(1), 1);
+        }
+    }
+
+    #[test]
+    fn test_get_left_size_no_left_child() {
+        // Tests get_left_size when node has no left child
+        let mut tree = TestTree::new(10);
+        unsafe {
+            tree.set_size(1, 1);
+            assert_eq!(tree.get_left_size(1), 0);
+        }
+    }
+
+    #[test]
+    fn test_get_right_size_no_right_child() {
+        // Tests get_right_size when node has no right child
+        let mut tree = TestTree::new(10);
+        unsafe {
+            tree.set_size(1, 1);
+            assert_eq!(tree.get_right_size(1), 0);
+        }
+    }
+
+    #[test]
+    fn test_fix_size_leaf_node() {
+        // Tests fix_size on a leaf node (no children)
+        let mut tree = TestTree::new(10);
+        unsafe {
+            tree.fix_size(1);
+            assert_eq!(tree.get_size(1), 1); // 0 + 0 + 1
+        }
+    }
+
+    #[test]
+    fn test_detach_reinsert_cycle() {
+        // Tests detaching all nodes and reinserting them
+        let mut tree = TestTree::new(30);
+        let mut root: usize = 0;
+
+        unsafe {
+            let nodes = [15, 10, 20, 5, 12, 17, 25];
+            for &i in &nodes {
+                tree.attach(&mut root, i);
+            }
+
+            // Detach all
+            for &i in &nodes {
+                tree.detach(&mut root, i);
+            }
+            assert_eq!(root, 0);
+
+            // Reinsert all
+            for &i in &nodes {
+                tree.attach(&mut root, i);
+            }
+
+            for &i in &nodes {
+                assert!(tree.contains(i, root), "Node {i} should be present after reinsert");
+            }
+            assert_eq!(tree.get_size(root), 7);
+        }
+    }
+
+    #[test]
+    fn test_contains_deep_tree() {
+        // Tests contains on a deep tree traversal
+        let mut tree = TestTree::new(30);
+        let mut root: usize = 0;
+
+        unsafe {
+            // Build a larger tree
+            for i in [15, 8, 22, 4, 12, 18, 26, 2, 6, 10, 14, 16, 20, 24, 28] {
+                tree.attach(&mut root, i);
+            }
+
+            // Search for nodes at various depths
+            assert!(tree.contains(2, root));
+            assert!(tree.contains(28, root));
+            assert!(tree.contains(15, root));
+            assert!(!tree.contains(1, root));
+            assert!(!tree.contains(30, root));
+            assert!(!tree.contains(13, root));
         }
     }
 }
