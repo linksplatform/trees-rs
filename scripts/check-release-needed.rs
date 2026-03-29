@@ -133,6 +133,17 @@ struct CratesIoVersionInfo {
     num: String,
 }
 
+#[derive(Deserialize)]
+struct CratesIoCrate {
+    versions: Option<Vec<CratesIoVersionEntry>>,
+}
+
+#[derive(Deserialize)]
+struct CratesIoVersionEntry {
+    num: String,
+    yanked: bool,
+}
+
 fn check_version_on_crates_io(crate_name: &str, version: &str) -> bool {
     let url = format!("https://crates.io/api/v1/crates/{}/{}", crate_name, version);
 
@@ -163,6 +174,66 @@ fn check_version_on_crates_io(crate_name: &str, version: &str) -> bool {
     }
 }
 
+/// Parse a semver version string into (major, minor, patch) tuple for comparison.
+fn parse_semver(version: &str) -> Option<(u32, u32, u32)> {
+    let parts: Vec<&str> = version.split('-').next()?.split('.').collect();
+    if parts.len() != 3 {
+        return None;
+    }
+    Some((
+        parts[0].parse().ok()?,
+        parts[1].parse().ok()?,
+        parts[2].parse().ok()?,
+    ))
+}
+
+/// Query crates.io for the maximum (latest non-yanked) published version of a crate.
+fn get_max_published_version(crate_name: &str) -> Option<String> {
+    let url = format!("https://crates.io/api/v1/crates/{}", crate_name);
+
+    match ureq::get(&url)
+        .set("User-Agent", "rust-script-check-release")
+        .call()
+    {
+        Ok(response) => {
+            if response.status() == 200 {
+                if let Ok(body) = response.into_string() {
+                    if let Ok(data) = serde_json::from_str::<CratesIoCrate>(&body) {
+                        if let Some(versions) = data.versions {
+                            // Find the maximum non-yanked version by semver ordering
+                            let mut max_version: Option<(u32, u32, u32, String)> = None;
+                            for v in &versions {
+                                if v.yanked {
+                                    continue;
+                                }
+                                if let Some(parsed) = parse_semver(&v.num) {
+                                    match &max_version {
+                                        None => {
+                                            max_version = Some((parsed.0, parsed.1, parsed.2, v.num.clone()));
+                                        }
+                                        Some(current) => {
+                                            if parsed > (current.0, current.1, current.2) {
+                                                max_version = Some((parsed.0, parsed.1, parsed.2, v.num.clone()));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return max_version.map(|v| v.3);
+                        }
+                    }
+                }
+            }
+            None
+        }
+        Err(ureq::Error::Status(404, _)) => None,
+        Err(e) => {
+            eprintln!("Warning: Could not query crates.io for versions: {}", e);
+            None
+        }
+    }
+}
+
 fn main() {
     let rust_root = get_rust_root();
     let cargo_toml = get_cargo_toml_path(&rust_root);
@@ -171,24 +242,33 @@ fn main() {
         .map(|v| v == "true")
         .unwrap_or(false);
 
+    let crate_name = match get_crate_name(&cargo_toml) {
+        Ok(name) => name,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            exit(1);
+        }
+    };
+
+    let current_version = match get_current_version(&cargo_toml) {
+        Ok(version) => version,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            exit(1);
+        }
+    };
+
+    // Always query and output the max published version for downstream scripts
+    let max_published = get_max_published_version(&crate_name);
+    if let Some(ref max_ver) = max_published {
+        println!("Max published version on crates.io: {}", max_ver);
+        set_output("max_published_version", max_ver);
+    } else {
+        println!("No versions published on crates.io yet (or crate not found)");
+        set_output("max_published_version", "");
+    }
+
     if !has_fragments {
-        // No fragments - check if current version is published on crates.io
-        let crate_name = match get_crate_name(&cargo_toml) {
-            Ok(name) => name,
-            Err(e) => {
-                eprintln!("Error: {}", e);
-                exit(1);
-            }
-        };
-
-        let current_version = match get_current_version(&cargo_toml) {
-            Ok(version) => version,
-            Err(e) => {
-                eprintln!("Error: {}", e);
-                exit(1);
-            }
-        };
-
         let is_published = check_version_on_crates_io(&crate_name, &current_version);
 
         println!(

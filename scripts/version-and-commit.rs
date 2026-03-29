@@ -12,6 +12,9 @@
 //! [dependencies]
 //! regex = "1"
 //! chrono = "0.4"
+//! ureq = "2"
+//! serde = { version = "1", features = ["derive"] }
+//! serde_json = "1"
 //! ```
 
 use std::env;
@@ -21,6 +24,7 @@ use std::path::Path;
 use std::process::{Command, exit};
 use regex::Regex;
 use chrono::Utc;
+use serde::Deserialize;
 
 fn get_arg(name: &str) -> Option<String> {
     let args: Vec<String> = env::args().collect();
@@ -156,8 +160,140 @@ fn update_cargo_toml(cargo_toml_path: &str, new_version: &str) -> Result<(), Str
     Ok(())
 }
 
+#[derive(Deserialize)]
+struct CratesIoCrate {
+    versions: Option<Vec<CratesIoVersionEntry>>,
+}
+
+#[derive(Deserialize)]
+struct CratesIoVersionEntry {
+    num: String,
+    yanked: bool,
+}
+
 fn check_tag_exists(version: &str) -> bool {
     exec_check("git", &["rev-parse", &format!("v{}", version)])
+}
+
+/// Check if a specific version exists on crates.io.
+fn check_version_on_crates_io(crate_name: &str, version: &str) -> bool {
+    let url = format!("https://crates.io/api/v1/crates/{}/{}", crate_name, version);
+    match ureq::get(&url)
+        .set("User-Agent", "rust-script-version-and-commit")
+        .call()
+    {
+        Ok(response) => response.status() == 200,
+        Err(_) => false,
+    }
+}
+
+/// Get the maximum non-yanked version published on crates.io as (major, minor, patch).
+fn get_max_published_version(crate_name: &str) -> Option<(u32, u32, u32)> {
+    let url = format!("https://crates.io/api/v1/crates/{}", crate_name);
+    match ureq::get(&url)
+        .set("User-Agent", "rust-script-version-and-commit")
+        .call()
+    {
+        Ok(response) => {
+            if response.status() == 200 {
+                if let Ok(body) = response.into_string() {
+                    if let Ok(data) = serde_json::from_str::<CratesIoCrate>(&body) {
+                        if let Some(versions) = data.versions {
+                            let mut max: Option<(u32, u32, u32)> = None;
+                            for v in &versions {
+                                if v.yanked { continue; }
+                                let base = match v.num.split('-').next() {
+                                    Some(b) => b,
+                                    None => continue,
+                                };
+                                let parts: Vec<&str> = base.split('.').collect();
+                                if parts.len() == 3 {
+                                    if let (Ok(a), Ok(b), Ok(c)) = (
+                                        parts[0].parse::<u32>(),
+                                        parts[1].parse::<u32>(),
+                                        parts[2].parse::<u32>(),
+                                    ) {
+                                        let tuple = (a, b, c);
+                                        if max.map_or(true, |m| tuple > m) {
+                                            max = Some(tuple);
+                                        }
+                                    }
+                                }
+                            }
+                            return max;
+                        }
+                    }
+                }
+            }
+            None
+        }
+        Err(_) => None,
+    }
+}
+
+/// Get the crate name from Cargo.toml
+fn get_crate_name(cargo_toml_path: &str) -> Result<String, String> {
+    let content = fs::read_to_string(cargo_toml_path)
+        .map_err(|e| format!("Failed to read {}: {}", cargo_toml_path, e))?;
+    let re = Regex::new(r#"(?m)^name\s*=\s*"([^"]+)""#).unwrap();
+    re.captures(&content)
+        .map(|c| c.get(1).unwrap().as_str().to_string())
+        .ok_or_else(|| format!("Could not find name in {}", cargo_toml_path))
+}
+
+/// Given a version (major, minor, patch), ensure it is strictly greater than `max_published`.
+/// If not, set the version to max_published with patch+1. Returns the final version string.
+fn ensure_version_exceeds_published(
+    version_str: &str,
+    crate_name: &str,
+    max_published: Option<(u32, u32, u32)>,
+) -> String {
+    let parts: Vec<&str> = version_str.split('-').next().unwrap_or(version_str).split('.').collect();
+    if parts.len() != 3 {
+        return version_str.to_string();
+    }
+
+    let mut major: u32 = parts[0].parse().unwrap_or(0);
+    let mut minor: u32 = parts[1].parse().unwrap_or(0);
+    let mut patch: u32 = parts[2].parse().unwrap_or(0);
+
+    if let Some((pub_major, pub_minor, pub_patch)) = max_published {
+        if (major, minor, patch) <= (pub_major, pub_minor, pub_patch) {
+            // The computed version does not exceed the max published version.
+            // Set to max_published and increment patch by 1 to exceed it.
+            println!(
+                "Version {}.{}.{} is not greater than max published {}.{}.{}, adjusting to {}.{}.{}",
+                major, minor, patch,
+                pub_major, pub_minor, pub_patch,
+                pub_major, pub_minor, pub_patch + 1
+            );
+            major = pub_major;
+            minor = pub_minor;
+            patch = pub_patch + 1;
+        }
+    }
+
+    // Also check git tags and crates.io for the specific version, in case of edge cases
+    let mut candidate = format!("{}.{}.{}", major, minor, patch);
+    let mut safety_counter = 0;
+    while (check_tag_exists(&candidate) || check_version_on_crates_io(crate_name, &candidate))
+        && safety_counter < 100
+    {
+        println!(
+            "Version {} already has a git tag or is published on crates.io, bumping patch",
+            candidate
+        );
+        patch += 1;
+        candidate = format!("{}.{}.{}", major, minor, patch);
+        safety_counter += 1;
+    }
+
+    if safety_counter >= 100 {
+        eprintln!("Error: Could not find an unpublished version after 100 attempts");
+        exit(1);
+    }
+
+    candidate
 }
 
 fn strip_frontmatter(content: &str) -> String {
@@ -275,56 +411,37 @@ fn main() {
         }
     };
 
-    let new_version = current.bump(&bump_type);
+    let initial_bump = current.bump(&bump_type);
 
-    // Check if this version was already released
-    if check_tag_exists(&new_version) {
-        println!("Tag v{} already exists", new_version);
-
-        // Cargo.toml may still have the old (pre-release) version if the tag was created
-        // without updating it (e.g. version-and-commit ran and created the tag but a revert
-        // or other incident left Cargo.toml stale). Bring it up to date so the working tree
-        // reflects reality.
-        let current_in_file = Version::parse(&content)
-            .map(|v| {
-                let pre = v.pre_release.as_deref().unwrap_or("");
-                if pre.is_empty() {
-                    format!("{}.{}.{}", v.major, v.minor, v.patch)
-                } else {
-                    format!("{}.{}.{}-{}", v.major, v.minor, v.patch, pre)
-                }
-            })
-            .unwrap_or_default();
-
-        if current_in_file != new_version {
-            println!(
-                "Cargo.toml version ({}) does not match existing tag v{} — updating",
-                current_in_file, new_version
-            );
-            if let Err(e) = update_cargo_toml(&cargo_toml, &new_version) {
-                eprintln!("Warning: could not update Cargo.toml: {}", e);
-            } else {
-                let _ = exec("git", &["add", &cargo_toml]);
-                if !exec_check("git", &["diff", "--cached", "--quiet"]) {
-                    let commit_msg = format!("chore: sync Cargo.toml version to already-released v{}", new_version);
-                    if let Err(e) = exec("git", &["commit", "-m", &commit_msg]) {
-                        eprintln!("Warning: could not commit Cargo.toml sync: {}", e);
-                    } else {
-                        println!("Committed Cargo.toml version sync to v{}", new_version);
-                        if let Err(e) = exec("git", &["push"]) {
-                            eprintln!("Warning: could not push Cargo.toml sync: {}", e);
-                        }
-                    }
-                }
-            }
-        } else {
-            println!("Cargo.toml already at v{}, nothing to sync", new_version);
+    // Query the crate name and max published version from crates.io
+    let crate_name = match get_crate_name(&cargo_toml) {
+        Ok(name) => name,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            exit(1);
         }
+    };
 
-        set_output("already_released", "true");
-        set_output("new_version", &new_version);
-        return;
+    let max_published = get_max_published_version(&crate_name);
+    if let Some((ma, mi, pa)) = max_published {
+        println!("Max published version on crates.io: {}.{}.{}", ma, mi, pa);
+    } else {
+        println!("No versions published on crates.io yet (or crate not found)");
     }
+
+    println!("Initial bump ({}) from {}.{}.{}: {}", bump_type, current.major, current.minor, current.patch, initial_bump);
+
+    // Ensure the new version is strictly greater than what's published and has no existing tag
+    let new_version = ensure_version_exceeds_published(&initial_bump, &crate_name, max_published);
+
+    if new_version != initial_bump {
+        println!(
+            "Adjusted version from {} to {} to exceed published versions",
+            initial_bump, new_version
+        );
+    }
+
+    println!("Final release version: {}", new_version);
 
     // Update version in Cargo.toml
     if let Err(e) = update_cargo_toml(&cargo_toml, &new_version) {
