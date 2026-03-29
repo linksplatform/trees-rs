@@ -280,6 +280,47 @@ fn main() {
     // Check if this version was already released
     if check_tag_exists(&new_version) {
         println!("Tag v{} already exists", new_version);
+
+        // Cargo.toml may still have the old (pre-release) version if the tag was created
+        // without updating it (e.g. version-and-commit ran and created the tag but a revert
+        // or other incident left Cargo.toml stale). Bring it up to date so the working tree
+        // reflects reality.
+        let current_in_file = Version::parse(&content)
+            .map(|v| {
+                let pre = v.pre_release.as_deref().unwrap_or("");
+                if pre.is_empty() {
+                    format!("{}.{}.{}", v.major, v.minor, v.patch)
+                } else {
+                    format!("{}.{}.{}-{}", v.major, v.minor, v.patch, pre)
+                }
+            })
+            .unwrap_or_default();
+
+        if current_in_file != new_version {
+            println!(
+                "Cargo.toml version ({}) does not match existing tag v{} — updating",
+                current_in_file, new_version
+            );
+            if let Err(e) = update_cargo_toml(&cargo_toml, &new_version) {
+                eprintln!("Warning: could not update Cargo.toml: {}", e);
+            } else {
+                let _ = exec("git", &["add", &cargo_toml]);
+                if !exec_check("git", &["diff", "--cached", "--quiet"]) {
+                    let commit_msg = format!("chore: sync Cargo.toml version to already-released v{}", new_version);
+                    if let Err(e) = exec("git", &["commit", "-m", &commit_msg]) {
+                        eprintln!("Warning: could not commit Cargo.toml sync: {}", e);
+                    } else {
+                        println!("Committed Cargo.toml version sync to v{}", new_version);
+                        if let Err(e) = exec("git", &["push"]) {
+                            eprintln!("Warning: could not push Cargo.toml sync: {}", e);
+                        }
+                    }
+                }
+            }
+        } else {
+            println!("Cargo.toml already at v{}, nothing to sync", new_version);
+        }
+
         set_output("already_released", "true");
         set_output("new_version", &new_version);
         return;
