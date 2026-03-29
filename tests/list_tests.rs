@@ -1,11 +1,17 @@
-use super::*;
+mod common;
+
+use common::{TestAbsoluteList, TestRelativeList};
+use platform_trees::{
+    AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkedList, RelativeCircularLinkedList,
+    RelativeLinkedList,
+};
 
 // =============================================================================
 // LinkType trait tests
 // =============================================================================
 
 mod link_type_tests {
-    use super::*;
+    use platform_trees::LinkType;
 
     #[test]
     fn test_funty_zero() {
