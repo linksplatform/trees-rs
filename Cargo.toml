@@ -19,7 +19,7 @@ name = "platform_trees"
 path = "src/lib.rs"
 
 [dependencies]
-num-traits = "0.2"
+num-traits = "0.2.19"
 platform-num = "0.5.0"
 
 [lints.rust]
