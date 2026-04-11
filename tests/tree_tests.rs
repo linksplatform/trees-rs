@@ -174,7 +174,7 @@ mod size_balanced_tree_tests {
             tree.set_size(3, 1);
 
             let mut root: usize = 1;
-            tree.left_rotate(&mut root);
+            tree.left_rotate(&raw mut root);
 
             assert_eq!(root, 2);
         }
@@ -211,7 +211,7 @@ mod size_balanced_tree_tests {
             tree.set_size(3, 1);
 
             let mut root: usize = 1;
-            tree.right_rotate(&mut root);
+            tree.right_rotate(&raw mut root);
 
             assert_eq!(root, 2);
         }

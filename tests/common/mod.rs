@@ -175,19 +175,19 @@ impl TestTree {
 
 impl RecursiveSizeBalancedTree<usize> for TestTree {
     unsafe fn get_mut_left_reference(&mut self, node: usize) -> *mut usize {
-        &mut self.nodes[node].left
+        &raw mut self.nodes[node].left
     }
 
     unsafe fn get_mut_right_reference(&mut self, node: usize) -> *mut usize {
-        &mut self.nodes[node].right
+        &raw mut self.nodes[node].right
     }
 
     unsafe fn get_left_reference(&self, node: usize) -> *const usize {
-        &self.nodes[node].left
+        &raw const self.nodes[node].left
     }
 
     unsafe fn get_right_reference(&self, node: usize) -> *const usize {
-        &self.nodes[node].right
+        &raw const self.nodes[node].right
     }
 
     unsafe fn get_left(&self, node: usize) -> usize {

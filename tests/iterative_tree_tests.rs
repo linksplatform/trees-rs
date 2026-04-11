@@ -16,7 +16,7 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 5);
+            tree.attach(&raw mut root, 5);
         }
 
         assert_eq!(root, 5);
@@ -31,8 +31,8 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 3);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 3);
         }
 
         unsafe {
@@ -48,8 +48,8 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 7);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 7);
         }
 
         unsafe {
@@ -65,11 +65,11 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 15);
-            tree.attach(&mut root, 3);
-            tree.attach(&mut root, 7);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 15);
+            tree.attach(&raw mut root, 3);
+            tree.attach(&raw mut root, 7);
         }
 
         unsafe {
@@ -88,8 +88,8 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 5);
-            tree.detach(&mut root, 5);
+            tree.attach(&raw mut root, 5);
+            tree.detach(&raw mut root, 5);
         }
 
         assert_eq!(root, 0);
@@ -101,11 +101,11 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 15);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 15);
 
-            tree.detach(&mut root, 5);
+            tree.detach(&raw mut root, 5);
 
             assert!(!tree.contains(5, root));
             assert!(tree.contains(10, root));
@@ -119,11 +119,11 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 3);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 3);
 
-            tree.detach(&mut root, 5);
+            tree.detach(&raw mut root, 5);
 
             assert!(!tree.contains(5, root));
             assert!(tree.contains(10, root));
@@ -137,13 +137,13 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 15);
-            tree.attach(&mut root, 3);
-            tree.attach(&mut root, 7);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 15);
+            tree.attach(&raw mut root, 3);
+            tree.attach(&raw mut root, 7);
 
-            tree.detach(&mut root, 5);
+            tree.detach(&raw mut root, 5);
 
             assert!(!tree.contains(5, root));
             assert!(tree.contains(10, root));
@@ -159,11 +159,11 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 15);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 15);
 
-            tree.detach(&mut root, 10);
+            tree.detach(&raw mut root, 10);
 
             assert!(!tree.contains(10, root));
             assert!(tree.contains(5, root));
@@ -180,7 +180,7 @@ mod iterative_size_balanced_tree_tests {
         unsafe {
             // Build tree
             for i in [10, 5, 15, 3, 7, 12, 17] {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
             // Verify all nodes present
@@ -189,9 +189,9 @@ mod iterative_size_balanced_tree_tests {
             }
 
             // Remove some nodes
-            tree.detach(&mut root, 3);
-            tree.detach(&mut root, 17);
-            tree.detach(&mut root, 10);
+            tree.detach(&raw mut root, 3);
+            tree.detach(&raw mut root, 17);
+            tree.detach(&raw mut root, 10);
 
             // Verify correct nodes present
             assert!(!tree.contains(3, root));
@@ -212,7 +212,7 @@ mod iterative_size_balanced_tree_tests {
         unsafe {
             // Insert in order that would cause imbalance without rotations
             for i in 1..=10 {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
             // All nodes should be reachable
@@ -231,11 +231,11 @@ mod iterative_size_balanced_tree_tests {
 
         unsafe {
             for i in 1..=5 {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
             for i in 1..=5 {
-                tree.detach(&mut root, i);
+                tree.detach(&raw mut root, i);
             }
 
             assert_eq!(root, 0);
@@ -251,9 +251,9 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 8); // Goes right of 5, should trigger LR rotation
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 8); // Goes right of 5, should trigger LR rotation
 
             assert!(tree.contains(10, root));
             assert!(tree.contains(5, root));
@@ -268,13 +268,13 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 20);
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 30);
-            tree.attach(&mut root, 25);
-            tree.attach(&mut root, 35);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 2);
+            tree.attach(&raw mut root, 20);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 30);
+            tree.attach(&raw mut root, 25);
+            tree.attach(&raw mut root, 35);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 2);
 
             assert!(tree.contains(2, root));
             assert_eq!(tree.get_size(root), 7);
@@ -288,9 +288,9 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 7);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 7);
 
             assert!(tree.contains(10, root));
             assert!(tree.contains(5, root));
@@ -305,9 +305,9 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 20);
-            tree.attach(&mut root, 15); // Between 10 and 20, triggers RL rotation
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 20);
+            tree.attach(&raw mut root, 15); // Between 10 and 20, triggers RL rotation
 
             assert!(tree.contains(10, root));
             assert!(tree.contains(15, root));
@@ -322,13 +322,13 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 20);
-            tree.attach(&mut root, 30);
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 15);
-            tree.attach(&mut root, 35);
-            tree.attach(&mut root, 40);
+            tree.attach(&raw mut root, 20);
+            tree.attach(&raw mut root, 30);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 15);
+            tree.attach(&raw mut root, 35);
+            tree.attach(&raw mut root, 40);
 
             assert!(tree.contains(40, root));
             assert_eq!(tree.get_size(root), 7);
@@ -342,12 +342,12 @@ mod iterative_size_balanced_tree_tests {
 
         unsafe {
             for i in [20, 10, 30, 5, 15, 25, 35, 3, 8, 13, 17] {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
-            tree.detach(&mut root, 3);
-            tree.detach(&mut root, 5);
-            tree.detach(&mut root, 8);
+            tree.detach(&raw mut root, 3);
+            tree.detach(&raw mut root, 5);
+            tree.detach(&raw mut root, 8);
 
             assert!(!tree.contains(3, root));
             assert!(!tree.contains(5, root));
@@ -362,12 +362,12 @@ mod iterative_size_balanced_tree_tests {
 
         unsafe {
             for i in [20, 10, 30, 5, 15, 25, 35, 32, 38, 28, 27] {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
-            tree.detach(&mut root, 35);
-            tree.detach(&mut root, 38);
-            tree.detach(&mut root, 32);
+            tree.detach(&raw mut root, 35);
+            tree.detach(&raw mut root, 38);
+            tree.detach(&raw mut root, 32);
 
             assert!(!tree.contains(35, root));
             assert!(!tree.contains(38, root));
@@ -381,15 +381,15 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 15);
-            tree.attach(&mut root, 3);
-            tree.attach(&mut root, 7);
-            tree.attach(&mut root, 2);
-            tree.attach(&mut root, 4);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 15);
+            tree.attach(&raw mut root, 3);
+            tree.attach(&raw mut root, 7);
+            tree.attach(&raw mut root, 2);
+            tree.attach(&raw mut root, 4);
 
-            tree.detach(&mut root, 5);
+            tree.detach(&raw mut root, 5);
 
             assert!(!tree.contains(5, root));
             assert!(tree.contains(3, root));
@@ -403,12 +403,12 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 15);
-            tree.attach(&mut root, 3);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 15);
+            tree.attach(&raw mut root, 3);
 
-            tree.detach(&mut root, 5);
+            tree.detach(&raw mut root, 5);
 
             assert!(!tree.contains(5, root));
             assert!(tree.contains(3, root));
@@ -422,7 +422,7 @@ mod iterative_size_balanced_tree_tests {
 
         unsafe {
             for i in 1..=20 {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
             for i in 1..=20 {
@@ -439,7 +439,7 @@ mod iterative_size_balanced_tree_tests {
 
         unsafe {
             for i in (1..=20).rev() {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
             for i in 1..=20 {
@@ -459,10 +459,10 @@ mod iterative_size_balanced_tree_tests {
             let mut high = 20;
             for i in 0..20 {
                 if i % 2 == 0 {
-                    tree.attach(&mut root, high);
+                    tree.attach(&raw mut root, high);
                     high -= 1;
                 } else {
-                    tree.attach(&mut root, low);
+                    tree.attach(&raw mut root, low);
                     low += 1;
                 }
             }
@@ -480,11 +480,11 @@ mod iterative_size_balanced_tree_tests {
 
         unsafe {
             for i in 1..=50 {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
             for i in (1..=50).step_by(2) {
-                tree.detach(&mut root, i);
+                tree.detach(&raw mut root, i);
             }
 
             for i in (2..=50).step_by(2) {
@@ -502,12 +502,12 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 15);
-            tree.attach(&mut root, 17);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 15);
+            tree.attach(&raw mut root, 17);
 
-            tree.detach(&mut root, 15);
+            tree.detach(&raw mut root, 15);
 
             assert!(!tree.contains(15, root));
             assert!(tree.contains(17, root));
@@ -520,9 +520,9 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 20);
-            tree.attach(&mut root, 15);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 20);
+            tree.attach(&raw mut root, 15);
 
             assert!(tree.contains(10, root));
             assert!(tree.contains(15, root));
@@ -536,15 +536,15 @@ mod iterative_size_balanced_tree_tests {
         let mut root: usize = 0;
 
         unsafe {
-            tree.attach(&mut root, 10);
-            tree.attach(&mut root, 5);
-            tree.attach(&mut root, 15);
-            tree.attach(&mut root, 12);
-            tree.attach(&mut root, 17);
-            tree.attach(&mut root, 16);
-            tree.attach(&mut root, 18);
+            tree.attach(&raw mut root, 10);
+            tree.attach(&raw mut root, 5);
+            tree.attach(&raw mut root, 15);
+            tree.attach(&raw mut root, 12);
+            tree.attach(&raw mut root, 17);
+            tree.attach(&raw mut root, 16);
+            tree.attach(&raw mut root, 18);
 
-            tree.detach(&mut root, 15);
+            tree.detach(&raw mut root, 15);
 
             assert!(!tree.contains(15, root));
             assert!(tree.contains(12, root));
@@ -607,16 +607,16 @@ mod iterative_size_balanced_tree_tests {
         unsafe {
             let nodes = [15, 10, 20, 5, 12, 17, 25];
             for &i in &nodes {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
             for &i in &nodes {
-                tree.detach(&mut root, i);
+                tree.detach(&raw mut root, i);
             }
             assert_eq!(root, 0);
 
             for &i in &nodes {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
             for &i in &nodes {
@@ -636,7 +636,7 @@ mod iterative_size_balanced_tree_tests {
 
         unsafe {
             for i in [15, 8, 22, 4, 12, 18, 26, 2, 6, 10, 14, 16, 20, 24, 28] {
-                tree.attach(&mut root, i);
+                tree.attach(&raw mut root, i);
             }
 
             assert!(tree.contains(2, root));
