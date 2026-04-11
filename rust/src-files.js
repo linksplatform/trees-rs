@@ -1,0 +1,2 @@
+createSrcSidebar('[["platform_trees",["",[["lists",[],["absolute_circular_linked_list.rs","absolute_linked_list.rs","linked_list.rs","mod.rs","relative_circular_linked_list.rs","relative_doubly_linked_list.rs"]],["trees",[],["iterative_size_balanced_tree.rs","mod.rs","recursive_size_balanced_tree.rs"]]],["lib.rs","link_type.rs"]]]]');
+//{"start":19,"fragment_lengths":[313]}

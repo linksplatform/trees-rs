@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":["AbsoluteCircularLinkedList","AbsoluteLinkedList","IterativeSizeBalancedTree","LinkType","LinkedList","RecursiveSizeBalancedTree","RelativeCircularLinkedList","RelativeLinkedList"]};
