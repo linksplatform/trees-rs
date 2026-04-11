@@ -1,6 +1,25 @@
 use crate::{LinkType, RecursiveSizeBalancedTree};
 
+/// Extends [`RecursiveSizeBalancedTree`] with iterative `attach` and
+/// `detach` operations.
+///
+/// The iterative approach avoids stack overflow on deep trees by using
+/// a loop with pointer-chasing instead of recursion.
+///
+/// # Usage
+///
+/// Implement [`RecursiveSizeBalancedTree`] for your storage type, then
+/// add an empty `impl IterativeSizeBalancedTree<T> for MyStorage {}`.
+///
+/// # Safety
+///
+/// All methods are `unsafe` — the caller must ensure that `root` points
+/// to a valid, writable location and that `node` indices are valid.
 pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
+    /// Inserts `node` into the tree rooted at `*root`.
+    ///
+    /// If `*root` is zero (empty tree), `node` becomes the root with
+    /// size 1. Otherwise the tree is rebalanced after insertion.
     unsafe fn attach(&mut self, root: *mut T, node: T) {
         unsafe {
             if *root == T::funty(0) {
@@ -11,6 +30,10 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
             self.attach_core(root, node);
         }
     }
+    /// Removes `node` from the tree rooted at `*root`.
+    ///
+    /// The tree is rebalanced after removal. After detach, `node`'s
+    /// left, right, and size fields are cleared to zero.
     unsafe fn detach(&mut self, root: *mut T, node: T) {
         unsafe {
             self.detach_core(root, node);
