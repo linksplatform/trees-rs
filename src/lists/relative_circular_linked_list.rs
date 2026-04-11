@@ -1,6 +1,16 @@
 use crate::{LinkType, RelativeLinkedList};
 
+/// Circular doubly-linked list with head-relative positioning.
+///
+/// Like [`AbsoluteCircularLinkedList`](super::AbsoluteCircularLinkedList)
+/// but takes a `head` parameter to support multiple independent circular
+/// lists sharing the same node storage.
+///
+/// All methods have default implementations — an empty `impl` block
+/// is sufficient once [`RelativeLinkedList`] is implemented.
 pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
+    /// Inserts `new_element` immediately before `base_element` in the
+    /// list identified by `head`.
     fn attach_before(&mut self, head: T, base_element: T, new_element: T) {
         let base_element_previous = self.get_previous(base_element);
         self.set_previous(new_element, base_element_previous);
@@ -13,6 +23,8 @@ pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
         self.inc_size(head);
     }
 
+    /// Inserts `new_element` immediately after `base_element` in the
+    /// list identified by `head`.
     fn attach_after(&mut self, head: T, base_element: T, new_element: T) {
         let base_element_next = self.get_next(base_element);
         self.set_previous(new_element, base_element);
@@ -25,6 +37,8 @@ pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
         self.inc_size(head);
     }
 
+    /// Inserts `element` as the first element of the list identified
+    /// by `head`.
     fn attach_as_first(&mut self, head: T, element: T) {
         let first = self.get_first(head);
         if first == T::funty(0) {
@@ -38,6 +52,8 @@ pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
         }
     }
 
+    /// Inserts `element` as the last element of the list identified
+    /// by `head`.
     fn attach_as_last(&mut self, head: T, element: T) {
         let last = self.get_last(head);
         if last == T::funty(0) {
@@ -47,6 +63,7 @@ pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
         }
     }
 
+    /// Removes `element` from the list identified by `head`.
     fn detach(&mut self, head: T, element: T) {
         let element_previous = self.get_previous(element);
         let element_next = self.get_next(element);

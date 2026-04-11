@@ -363,6 +363,39 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: rust-script scripts/create-github-release.rs --release-version "${{ steps.version.outputs.new_version }}" --repository "${{ github.repository }}"
 
+  # === DEPLOY DOCUMENTATION ===
+  # Generates and deploys Rust API documentation to GitHub Pages after a successful release
+  deploy-docs:
+    name: Deploy Rust Documentation
+    needs: [auto-release, manual-release]
+    # Run if either release job succeeded (the other will be skipped)
+    if: |
+      always() && !cancelled() && (
+        needs.auto-release.result == 'success' ||
+        needs.manual-release.result == 'success'
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build documentation
+        run: cargo doc --no-deps
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/doc
+          destination_dir: rust
+          keep_files: true
+
   # === MANUAL CHANGELOG PR ===
   changelog-pr:
     name: Create Changelog PR
