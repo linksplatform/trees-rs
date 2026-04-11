@@ -19,9 +19,9 @@ dependencies = [
 
 [[package]]
 name = "platform-num"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dab501bc8b19f2fd4e7a5c17dcc5e123a26721d7ef685b01395250c42bdd774b"
+checksum = "51306628a5a0398b4216348a9b826866c83f9709661dd994865baf2a486b052b"
 dependencies = [
  "num-traits",
 ]
