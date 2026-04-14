@@ -22,8 +22,8 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
     /// size 1. Otherwise the tree is rebalanced after insertion.
     unsafe fn attach(&mut self, root: *mut T, node: T) {
         unsafe {
-            if *root == T::funty(0) {
-                self.set_size(node, T::funty(1));
+            if *root == T::from_byte(0) {
+                self.set_size(node, T::from_byte(1));
                 *root = node;
                 return;
             }
@@ -48,14 +48,14 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
                 let right = self.get_mut_right_reference(*root);
                 let right_size = self.get_size_or_zero(*right);
                 if self.first_is_to_the_left_of_second(node, *root) {
-                    if *left == T::funty(0) {
+                    if *left == T::from_byte(0) {
                         self.inc_size(*root);
-                        self.set_size(node, T::funty(1));
+                        self.set_size(node, T::from_byte(1));
                         *left = node;
                         return;
                     }
                     if self.first_is_to_the_left_of_second(node, *left) {
-                        if (left_size + T::funty(1)) > right_size {
+                        if (left_size + T::from_byte(1)) > right_size {
                             self.right_rotate(root);
                         } else {
                             self.inc_size(*root);
@@ -63,13 +63,13 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
                         }
                     } else {
                         let left_right_size = self.get_size_or_zero(self.get_right(*left));
-                        if (left_right_size + T::funty(1)) > right_size {
-                            if left_right_size == T::funty(0) && right_size == T::funty(0) {
+                        if (left_right_size + T::from_byte(1)) > right_size {
+                            if left_right_size == T::from_byte(0) && right_size == T::from_byte(0) {
                                 self.set_left(node, *left);
                                 self.set_right(node, *root);
-                                self.set_size(node, left_size + T::funty(1) + T::funty(1));
-                                self.set_left(*root, T::funty(0));
-                                self.set_size(*root, T::funty(1));
+                                self.set_size(node, left_size + T::from_byte(1) + T::from_byte(1));
+                                self.set_left(*root, T::from_byte(0));
+                                self.set_size(*root, T::from_byte(1));
                                 *root = node;
                                 return;
                             }
@@ -81,14 +81,14 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
                         }
                     }
                 } else {
-                    if *right == T::funty(0) {
+                    if *right == T::from_byte(0) {
                         self.inc_size(*root);
-                        self.set_size(node, T::funty(1));
+                        self.set_size(node, T::from_byte(1));
                         *right = node;
                         return;
                     }
                     if self.first_is_to_the_right_of_second(node, *right) {
-                        if (right_size + T::funty(1)) > left_size {
+                        if (right_size + T::from_byte(1)) > left_size {
                             self.left_rotate(root);
                         } else {
                             self.inc_size(*root);
@@ -96,13 +96,13 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
                         }
                     } else {
                         let right_left_size = self.get_size_or_zero(self.get_left(*right));
-                        if (right_left_size + T::funty(1)) > left_size {
-                            if right_left_size == T::funty(0) && left_size == T::funty(0) {
+                        if (right_left_size + T::from_byte(1)) > left_size {
+                            if right_left_size == T::from_byte(0) && left_size == T::from_byte(0) {
                                 self.set_left(node, *root);
                                 self.set_right(node, *right);
-                                self.set_size(node, right_size + T::funty(1) + T::funty(1));
-                                self.set_right(*root, T::funty(0));
-                                self.set_size(*root, T::funty(1));
+                                self.set_size(node, right_size + T::from_byte(1) + T::from_byte(1));
+                                self.set_right(*root, T::from_byte(0));
+                                self.set_size(*root, T::from_byte(1));
                                 *root = node;
                                 return;
                             }
@@ -126,7 +126,7 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
                 let right = self.get_mut_right_reference(*root);
                 let right_size = self.get_size_or_zero(*right);
                 if self.first_is_to_the_left_of_second(node, *root) {
-                    let decremented_left_size = left_size - T::funty(1);
+                    let decremented_left_size = left_size - T::from_byte(1);
                     if self.get_size_or_zero(self.get_right_or_default(*right))
                         > decremented_left_size
                     {
@@ -141,7 +141,7 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
                         root = left;
                     }
                 } else if self.first_is_to_the_right_of_second(node, *root) {
-                    let decremented_right_size = right_size - T::funty(1);
+                    let decremented_right_size = right_size - T::from_byte(1);
                     if self.get_size_or_zero(self.get_left_or_default(*left))
                         > decremented_right_size
                     {
@@ -156,7 +156,7 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
                         root = right;
                     }
                 } else {
-                    if left_size > T::funty(0) && right_size > T::funty(0) {
+                    if left_size > T::from_byte(0) && right_size > T::from_byte(0) {
                         let replacement;
                         if left_size > right_size {
                             replacement = self.get_rightest(*left);
@@ -169,12 +169,12 @@ pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
                         self.set_right(replacement, *right);
                         self.set_size(replacement, left_size + right_size);
                         *root = replacement;
-                    } else if left_size > T::funty(0) {
+                    } else if left_size > T::from_byte(0) {
                         *root = *left;
-                    } else if right_size > T::funty(0) {
+                    } else if right_size > T::from_byte(0) {
                         *root = *right;
                     } else {
-                        *root = T::funty(0);
+                        *root = T::from_byte(0);
                     }
                     self.clear_node(node);
                     return;

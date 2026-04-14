@@ -12,7 +12,7 @@
 //!
 //! | Trait | Description |
 //! |---|---|
-//! | [`LinkType`] | Marker trait for unsigned integer types usable as node indices |
+//! | [`LinkType`] | Deprecated alias — use [`LinkReference`] instead |
 //! | [`LinkedList`] | Base doubly-linked list with `get_previous`/`get_next` |
 //! | [`AbsoluteLinkedList`] | List with direct `first`/`last`/`size` access |
 //! | [`RelativeLinkedList`] | List with head-relative `first`/`last`/`size` |
@@ -24,9 +24,8 @@
 //! ## Quick start
 //!
 //! ```rust
-//! use platform_trees::{
-//!     LinkType, LinkedList, AbsoluteLinkedList, AbsoluteCircularLinkedList,
-//! };
+//! use platform_trees::{LinkedList, AbsoluteLinkedList, AbsoluteCircularLinkedList};
+//! use platform_num::LinkReference;
 //!
 //! // 1. Define your storage
 //! #[derive(Default, Clone, Copy)]
@@ -75,6 +74,7 @@ mod lists;
 mod trees;
 
 pub use link_type::LinkType;
+pub use platform_num::LinkReference;
 pub use lists::{
     AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkedList, RelativeCircularLinkedList,
     RelativeLinkedList,

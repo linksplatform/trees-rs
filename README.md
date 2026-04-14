@@ -40,7 +40,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-platform-trees = "0.2.0"
+platform-trees = "0.3.0"
 ```
 
 ## Usage

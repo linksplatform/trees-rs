@@ -26,11 +26,11 @@ pub trait RelativeLinkedList<T: LinkType>: LinkedList<T> {
 
     /// Increments the size of the list identified by `head` by one.
     fn inc_size(&mut self, head: T) {
-        self.set_size(head, self.get_size(head) + T::funty(1));
+        self.set_size(head, self.get_size(head) + T::from_byte(1));
     }
 
     /// Decrements the size of the list identified by `head` by one.
     fn dec_size(&mut self, head: T) {
-        self.set_size(head, self.get_size(head) - T::funty(1));
+        self.set_size(head, self.get_size(head) - T::from_byte(1));
     }
 }

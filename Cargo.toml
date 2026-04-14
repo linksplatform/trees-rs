@@ -1,6 +1,6 @@
 [package]
 name = "platform-trees"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.85"
 authors = ["uselesssgoddess", "Linksplatform Team <linksplatformtechnologies@gmail.com>"]
@@ -19,8 +19,7 @@ name = "platform_trees"
 path = "src/lib.rs"
 
 [dependencies]
-num-traits = "0.2.19"
-platform-num = "0.6.0"
+platform-num = "0.7.0"
 
 [lints.rust]
 unsafe_code = "allow"

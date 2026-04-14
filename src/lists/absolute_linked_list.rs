@@ -7,10 +7,10 @@ use crate::{LinkType, LinkedList};
 /// head/tail/size metadata. For multiple lists sharing the same
 /// storage, see [`RelativeLinkedList`](super::RelativeLinkedList).
 pub trait AbsoluteLinkedList<T: LinkType>: LinkedList<T> {
-    /// Returns the first element (head) of the list, or `T::funty(0)` if empty.
+    /// Returns the first element (head) of the list, or `T::from_byte(0)` if empty.
     fn get_first(&self) -> T;
 
-    /// Returns the last element (tail) of the list, or `T::funty(0)` if empty.
+    /// Returns the last element (tail) of the list, or `T::from_byte(0)` if empty.
     fn get_last(&self) -> T;
 
     /// Returns the number of elements in the list.
@@ -27,11 +27,11 @@ pub trait AbsoluteLinkedList<T: LinkType>: LinkedList<T> {
 
     /// Increments the list size by one.
     fn inc_size(&mut self) {
-        self.set_size(self.get_size() + T::funty(1));
+        self.set_size(self.get_size() + T::from_byte(1));
     }
 
     /// Decrements the list size by one.
     fn dec_size(&mut self) {
-        self.set_size(self.get_size() - T::funty(1));
+        self.set_size(self.get_size() - T::from_byte(1));
     }
 }
