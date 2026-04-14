@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["AbsoluteCircularLinkedList","AbsoluteLinkedList","IterativeSizeBalancedTree","LinkType","LinkedList","RecursiveSizeBalancedTree","RelativeCircularLinkedList","RelativeLinkedList"]};
+window.SIDEBAR_ITEMS = {"trait":["AbsoluteCircularLinkedList","AbsoluteLinkedList","IterativeSizeBalancedTree","LinkReference","LinkedList","RecursiveSizeBalancedTree","RelativeCircularLinkedList","RelativeLinkedList"]};
