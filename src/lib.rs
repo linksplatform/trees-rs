@@ -74,10 +74,10 @@ mod lists;
 mod trees;
 
 pub use link_type::LinkType;
-pub use platform_num::LinkReference;
 pub use lists::{
     AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkedList, RelativeCircularLinkedList,
     RelativeLinkedList,
 };
+pub use platform_num::LinkReference;
 
 pub use trees::{IterativeSizeBalancedTree, RecursiveSizeBalancedTree};
