@@ -1,4 +1,5 @@
-use crate::{LinkType, RelativeLinkedList};
+use crate::RelativeLinkedList;
+use platform_num::LinkReference;
 
 /// Circular doubly-linked list with head-relative positioning.
 ///
@@ -8,7 +9,7 @@ use crate::{LinkType, RelativeLinkedList};
 ///
 /// All methods have default implementations — an empty `impl` block
 /// is sufficient once [`RelativeLinkedList`] is implemented.
-pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
+pub trait RelativeCircularLinkedList<T: LinkReference>: RelativeLinkedList<T> {
     /// Inserts `new_element` immediately before `base_element` in the
     /// list identified by `head`.
     fn attach_before(&mut self, head: T, base_element: T, new_element: T) {

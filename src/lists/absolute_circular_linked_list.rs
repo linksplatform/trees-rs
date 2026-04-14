@@ -1,4 +1,5 @@
-use crate::{AbsoluteLinkedList, LinkType};
+use crate::AbsoluteLinkedList;
+use platform_num::LinkReference;
 
 /// Circular doubly-linked list with absolute (direct) head/tail access.
 ///
@@ -8,7 +9,7 @@ use crate::{AbsoluteLinkedList, LinkType};
 ///
 /// All methods have default implementations — an empty `impl` block
 /// is sufficient once [`AbsoluteLinkedList`] is implemented.
-pub trait AbsoluteCircularLinkedList<T: LinkType>: AbsoluteLinkedList<T> {
+pub trait AbsoluteCircularLinkedList<T: LinkReference>: AbsoluteLinkedList<T> {
     /// Inserts `new_element` immediately before `base_element`.
     ///
     /// If `base_element` is the current first element, the first

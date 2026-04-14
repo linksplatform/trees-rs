@@ -1,4 +1,5 @@
-use crate::{LinkType, LinkedList};
+use crate::LinkedList;
+use platform_num::LinkReference;
 
 /// Linked list with direct (absolute) access to the first and last
 /// elements and a size counter.
@@ -6,7 +7,7 @@ use crate::{LinkType, LinkedList};
 /// This is typically used when a single list instance owns its own
 /// head/tail/size metadata. For multiple lists sharing the same
 /// storage, see [`RelativeLinkedList`](super::RelativeLinkedList).
-pub trait AbsoluteLinkedList<T: LinkType>: LinkedList<T> {
+pub trait AbsoluteLinkedList<T: LinkReference>: LinkedList<T> {
     /// Returns the first element (head) of the list, or `T::from_byte(0)` if empty.
     fn get_first(&self) -> T;
 

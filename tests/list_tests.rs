@@ -7,10 +7,10 @@ use platform_trees::{
 };
 
 // =============================================================================
-// LinkType trait tests
+// LinkReference trait tests
 // =============================================================================
 
-mod link_type_tests {
+mod link_reference_tests {
     use platform_num::LinkReference;
 
     #[test]

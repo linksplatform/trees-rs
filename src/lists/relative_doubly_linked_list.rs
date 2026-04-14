@@ -1,11 +1,12 @@
-use crate::{LinkType, LinkedList};
+use crate::LinkedList;
+use platform_num::LinkReference;
 
 /// Linked list with head-relative access to first, last, and size.
 ///
 /// Unlike [`AbsoluteLinkedList`](super::AbsoluteLinkedList), this trait
 /// stores head/tail/size per `head` index, allowing multiple independent
 /// lists to share the same underlying node storage.
-pub trait RelativeLinkedList<T: LinkType>: LinkedList<T> {
+pub trait RelativeLinkedList<T: LinkReference>: LinkedList<T> {
     /// Returns the first element of the list identified by `head`.
     fn get_first(&self, head: T) -> T;
 

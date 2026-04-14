@@ -1,4 +1,5 @@
-use crate::{LinkType, RecursiveSizeBalancedTree};
+use crate::RecursiveSizeBalancedTree;
+use platform_num::LinkReference;
 
 /// Extends [`RecursiveSizeBalancedTree`] with iterative `attach` and
 /// `detach` operations.
@@ -15,7 +16,7 @@ use crate::{LinkType, RecursiveSizeBalancedTree};
 ///
 /// All methods are `unsafe` — the caller must ensure that `root` points
 /// to a valid, writable location and that `node` indices are valid.
-pub trait IterativeSizeBalancedTree<T: LinkType>: RecursiveSizeBalancedTree<T> {
+pub trait IterativeSizeBalancedTree<T: LinkReference>: RecursiveSizeBalancedTree<T> {
     /// Inserts `node` into the tree rooted at `*root`.
     ///
     /// If `*root` is zero (empty tree), `node` becomes the root with

@@ -12,7 +12,7 @@
 //!
 //! | Trait | Description |
 //! |---|---|
-//! | [`LinkType`] | Deprecated alias — use [`LinkReference`] instead |
+//! | [`LinkReference`] | Unsigned integer type usable as a node index (from `platform-num`) |
 //! | [`LinkedList`] | Base doubly-linked list with `get_previous`/`get_next` |
 //! | [`AbsoluteLinkedList`] | List with direct `first`/`last`/`size` access |
 //! | [`RelativeLinkedList`] | List with head-relative `first`/`last`/`size` |
@@ -69,11 +69,9 @@
 //! assert_eq!(list.get_last(), 2);
 //! ```
 
-mod link_type;
 mod lists;
 mod trees;
 
-pub use link_type::LinkType;
 pub use lists::{
     AbsoluteCircularLinkedList, AbsoluteLinkedList, LinkedList, RelativeCircularLinkedList,
     RelativeLinkedList,

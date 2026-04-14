@@ -1,13 +1,9 @@
 // Verify that `from_byte()` (the replacement for the old `funty()` method)
 // works correctly via `LinkReference` from `platform-num`.
-//
-// The old `funty()` method on `LinkType` was replaced by `from_byte()` on
-// `LinkReference` as part of the trait unification (issue #30).
 
 #[cfg(test)]
 mod tests {
     use platform_num::LinkReference;
-    use platform_trees::LinkType;
 
     #[test]
     fn test_from_byte_zero_all_types() {
@@ -90,17 +86,12 @@ mod tests {
     }
 
     #[test]
-    fn test_link_type_is_link_reference_superset() {
-        fn accepts_link_type<T: LinkType>(_val: T) {}
+    fn test_link_reference_accepted_by_traits() {
         fn accepts_link_reference<T: LinkReference>(_val: T) {}
 
-        accepts_link_type(42u32);
         accepts_link_reference(42u32);
-        accepts_link_type(42u64);
         accepts_link_reference(42u64);
-        accepts_link_type(42usize);
         accepts_link_reference(42usize);
-        accepts_link_type(42u128);
         accepts_link_reference(42u128);
     }
 }

@@ -1,4 +1,4 @@
-use crate::LinkType;
+use platform_num::LinkReference;
 
 /// Base trait for a size-balanced binary search tree (SBT).
 ///
@@ -17,7 +17,7 @@ use crate::LinkType;
 /// All methods are `unsafe` because they operate on raw node indices
 /// without bounds checking — the caller must ensure that every index
 /// passed to these methods refers to a valid, allocated node.
-pub trait RecursiveSizeBalancedTree<T: LinkType> {
+pub trait RecursiveSizeBalancedTree<T: LinkReference> {
     /// Returns a mutable raw pointer to the left-child field of `node`.
     unsafe fn get_mut_left_reference(&mut self, node: T) -> *mut T;
 
