@@ -163,7 +163,6 @@ impl AbsoluteCircularLinkedList<usize> for MyListStorage {}
 
 ## Depend on
 
-- [num-traits](https://crates.io/crates/num-traits)
 - [platform-num](https://crates.io/crates/platform-num)
   ([Numbers](https://github.com/linksplatform/Numbers))
 

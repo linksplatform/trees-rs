@@ -19,7 +19,7 @@ name = "platform_trees"
 path = "src/lib.rs"
 
 [dependencies]
-platform-num = "0.7.0"
+platform-num = "0.8.0"
 
 [lints.rust]
 unsafe_code = "allow"
