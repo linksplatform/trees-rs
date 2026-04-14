@@ -1,4 +1,4 @@
-use crate::LinkType;
+use platform_num::LinkReference;
 
 /// Base trait for a size-balanced binary search tree (SBT).
 ///
@@ -17,7 +17,7 @@ use crate::LinkType;
 /// All methods are `unsafe` because they operate on raw node indices
 /// without bounds checking — the caller must ensure that every index
 /// passed to these methods refers to a valid, allocated node.
-pub trait RecursiveSizeBalancedTree<T: LinkType> {
+pub trait RecursiveSizeBalancedTree<T: LinkReference> {
     /// Returns a mutable raw pointer to the left-child field of `node`.
     unsafe fn get_mut_left_reference(&mut self, node: T) -> *mut T;
 
@@ -54,22 +54,22 @@ pub trait RecursiveSizeBalancedTree<T: LinkType> {
     /// Returns `true` if `first` should be placed to the right of `second`.
     unsafe fn first_is_to_the_right_of_second(&self, first: T, second: T) -> bool;
 
-    /// Returns the left child of `node`, or `T::funty(0)` if `node` is zero.
+    /// Returns the left child of `node`, or `T::from_byte(0)` if `node` is zero.
     unsafe fn get_left_or_default(&self, node: T) -> T {
         unsafe {
-            if node == T::funty(0) {
-                T::funty(0)
+            if node == T::from_byte(0) {
+                T::from_byte(0)
             } else {
                 self.get_left(node)
             }
         }
     }
 
-    /// Returns the right child of `node`, or `T::funty(0)` if `node` is zero.
+    /// Returns the right child of `node`, or `T::from_byte(0)` if `node` is zero.
     unsafe fn get_right_or_default(&self, node: T) -> T {
         unsafe {
-            if node == T::funty(0) {
-                T::funty(0)
+            if node == T::from_byte(0) {
+                T::from_byte(0)
             } else {
                 self.get_right(node)
             }
@@ -79,8 +79,8 @@ pub trait RecursiveSizeBalancedTree<T: LinkType> {
     /// Returns the size of `node`, or zero if `node` is zero.
     unsafe fn get_size_or_zero(&self, node: T) -> T {
         unsafe {
-            if node == T::funty(0) {
-                T::funty(0)
+            if node == T::from_byte(0) {
+                T::from_byte(0)
             } else {
                 self.get_size(node)
             }
@@ -90,14 +90,14 @@ pub trait RecursiveSizeBalancedTree<T: LinkType> {
     /// Increments the subtree size of `node` by one.
     unsafe fn inc_size(&mut self, node: T) {
         unsafe {
-            self.set_size(node, self.get_size(node) + T::funty(1));
+            self.set_size(node, self.get_size(node) + T::from_byte(1));
         }
     }
 
     /// Decrements the subtree size of `node` by one.
     unsafe fn dec_size(&mut self, node: T) {
         unsafe {
-            self.set_size(node, self.get_size(node) - T::funty(1));
+            self.set_size(node, self.get_size(node) - T::from_byte(1));
         }
     }
 
@@ -117,7 +117,7 @@ pub trait RecursiveSizeBalancedTree<T: LinkType> {
         unsafe {
             self.set_size(
                 node,
-                (self.get_left_size(node) + self.get_right_size(node)) + T::funty(1),
+                (self.get_left_size(node) + self.get_right_size(node)) + T::from_byte(1),
             );
         }
     }
@@ -166,7 +166,7 @@ pub trait RecursiveSizeBalancedTree<T: LinkType> {
     unsafe fn get_rightest(&self, mut current: T) -> T {
         unsafe {
             let mut current_right = self.get_right(current);
-            while current_right != T::funty(0) {
+            while current_right != T::from_byte(0) {
                 current = current_right;
                 current_right = self.get_right(current);
             }
@@ -178,7 +178,7 @@ pub trait RecursiveSizeBalancedTree<T: LinkType> {
     unsafe fn get_leftest(&self, mut current: T) -> T {
         unsafe {
             let mut current_left = self.get_left(current);
-            while current_left != T::funty(0) {
+            while current_left != T::from_byte(0) {
                 current = current_left;
                 current_left = self.get_left(current);
             }
@@ -199,7 +199,7 @@ pub trait RecursiveSizeBalancedTree<T: LinkType> {
     /// Returns `true` if `node` exists in the tree rooted at `root`.
     unsafe fn contains(&self, node: T, mut root: T) -> bool {
         unsafe {
-            while root != T::funty(0) {
+            while root != T::from_byte(0) {
                 if self.first_is_to_the_left_of_second(node, root) {
                     root = self.get_left(root);
                 } else if self.first_is_to_the_right_of_second(node, root) {
@@ -215,9 +215,9 @@ pub trait RecursiveSizeBalancedTree<T: LinkType> {
     /// Resets `node`'s left, right, and size fields to zero.
     unsafe fn clear_node(&mut self, node: T) {
         unsafe {
-            self.set_left(node, T::funty(0));
-            self.set_right(node, T::funty(0));
-            self.set_size(node, T::funty(0));
+            self.set_left(node, T::from_byte(0));
+            self.set_right(node, T::from_byte(0));
+            self.set_size(node, T::from_byte(0));
         }
     }
 }

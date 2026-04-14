@@ -1,4 +1,4 @@
-use crate::LinkType;
+use platform_num::LinkReference;
 
 /// Base doubly-linked list trait providing node-level navigation.
 ///
@@ -28,7 +28,7 @@ use crate::LinkType;
 /// list.set_next(1, 2);
 /// assert_eq!(list.get_next(1), 2);
 /// ```
-pub trait LinkedList<T: LinkType> {
+pub trait LinkedList<T: LinkReference> {
     /// Returns the previous element of `element`.
     fn get_previous(&self, element: T) -> T;
 

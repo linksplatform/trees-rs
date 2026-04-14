@@ -1,4 +1,5 @@
-use crate::{LinkType, RelativeLinkedList};
+use crate::RelativeLinkedList;
+use platform_num::LinkReference;
 
 /// Circular doubly-linked list with head-relative positioning.
 ///
@@ -8,7 +9,7 @@ use crate::{LinkType, RelativeLinkedList};
 ///
 /// All methods have default implementations — an empty `impl` block
 /// is sufficient once [`RelativeLinkedList`] is implemented.
-pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
+pub trait RelativeCircularLinkedList<T: LinkReference>: RelativeLinkedList<T> {
     /// Inserts `new_element` immediately before `base_element` in the
     /// list identified by `head`.
     fn attach_before(&mut self, head: T, base_element: T, new_element: T) {
@@ -41,7 +42,7 @@ pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
     /// by `head`.
     fn attach_as_first(&mut self, head: T, element: T) {
         let first = self.get_first(head);
-        if first == T::funty(0) {
+        if first == T::from_byte(0) {
             self.set_first(head, element);
             self.set_last(head, element);
             self.set_previous(element, element);
@@ -56,7 +57,7 @@ pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
     /// by `head`.
     fn attach_as_last(&mut self, head: T, element: T) {
         let last = self.get_last(head);
-        if last == T::funty(0) {
+        if last == T::from_byte(0) {
             self.attach_as_first(head, element);
         } else {
             self.attach_after(head, last, element);
@@ -68,8 +69,8 @@ pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
         let element_previous = self.get_previous(element);
         let element_next = self.get_next(element);
         if element_next == element {
-            self.set_first(head, T::funty(0));
-            self.set_last(head, T::funty(0));
+            self.set_first(head, T::from_byte(0));
+            self.set_last(head, T::from_byte(0));
         } else {
             self.set_next(element_previous, element_next);
             self.set_previous(element_next, element_previous);
@@ -80,8 +81,8 @@ pub trait RelativeCircularLinkedList<T: LinkType>: RelativeLinkedList<T> {
                 self.set_last(head, element_previous);
             }
         }
-        self.set_previous(element, T::funty(0));
-        self.set_next(element, T::funty(0));
+        self.set_previous(element, T::from_byte(0));
+        self.set_next(element, T::from_byte(0));
         self.dec_size(head);
     }
 }

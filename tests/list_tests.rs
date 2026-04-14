@@ -7,38 +7,38 @@ use platform_trees::{
 };
 
 // =============================================================================
-// LinkType trait tests
+// LinkReference trait tests
 // =============================================================================
 
-mod link_type_tests {
-    use platform_trees::LinkType;
+mod link_reference_tests {
+    use platform_num::LinkReference;
 
     #[test]
-    fn test_funty_zero() {
-        assert_eq!(usize::funty(0), 0usize);
-        assert_eq!(u8::funty(0), 0u8);
-        assert_eq!(u16::funty(0), 0u16);
-        assert_eq!(u32::funty(0), 0u32);
-        assert_eq!(u64::funty(0), 0u64);
+    fn test_from_byte_zero() {
+        assert_eq!(usize::from_byte(0), 0usize);
+        assert_eq!(u8::from_byte(0), 0u8);
+        assert_eq!(u16::from_byte(0), 0u16);
+        assert_eq!(u32::from_byte(0), 0u32);
+        assert_eq!(u64::from_byte(0), 0u64);
     }
 
     #[test]
-    fn test_funty_one() {
-        assert_eq!(usize::funty(1), 1usize);
-        assert_eq!(u8::funty(1), 1u8);
-        assert_eq!(u16::funty(1), 1u16);
-        assert_eq!(u32::funty(1), 1u32);
-        assert_eq!(u64::funty(1), 1u64);
+    fn test_from_byte_one() {
+        assert_eq!(usize::from_byte(1), 1usize);
+        assert_eq!(u8::from_byte(1), 1u8);
+        assert_eq!(u16::from_byte(1), 1u16);
+        assert_eq!(u32::from_byte(1), 1u32);
+        assert_eq!(u64::from_byte(1), 1u64);
     }
 
     #[test]
-    fn test_funty_various_values() {
+    fn test_from_byte_various_values() {
         for i in 0..=255u8 {
-            assert_eq!(u8::funty(i), i);
-            assert_eq!(u16::funty(i), u16::from(i));
-            assert_eq!(u32::funty(i), u32::from(i));
-            assert_eq!(u64::funty(i), u64::from(i));
-            assert_eq!(usize::funty(i), i as usize);
+            assert_eq!(u8::from_byte(i), i);
+            assert_eq!(u16::from_byte(i), u16::from(i));
+            assert_eq!(u32::from_byte(i), u32::from(i));
+            assert_eq!(u64::from_byte(i), u64::from(i));
+            assert_eq!(usize::from_byte(i), i as usize);
         }
     }
 }
