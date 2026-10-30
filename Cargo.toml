@@ -1,28 +1,42 @@
 [package]
 name = "platform-trees"
-version = "0.1.0-beta.1"
-edition = "2018"
-authors = [
-    "uselesssgoddess",
-    "Linksplatform Team <linksplatformtechnologies@gmail.com>"
-]
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.85"
+authors = ["uselesssgoddess", "Linksplatform Team <linksplatformtechnologies@gmail.com>"]
 license = "Unlicense"
-repository = "https://github.com/linksplatform/Collections.Methods"
-homepage = "https://github.com/linksplatform/Collections.Methods/rust"
+repository = "https://github.com/linksplatform/trees-rs"
+homepage = "https://github.com/linksplatform/trees-rs"
+description = """
+Trees methods for linksplatform
+"""
+readme = "README.md"
+keywords = ["trees", "linksplatform", "data-structures"]
+categories = ["data-structures"]
+
+[lib]
+name = "platform_trees"
+path = "src/lib.rs"
 
 [dependencies]
-tap = "1.0.1"
-funty = "2.0"
+platform-num = "0.8.0"
 
-[dependencies.platform-data]
-version = "0.1.0-beta.3"
-git = "https://github.com/linksplatform/core-rs"
-branch = "feature/f-oriented"
+[lints.rust]
+unsafe_code = "allow"
 
-[dev-dependencies]
-criterion = "0.4.0"
-proptest = "1.0.0"
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
 
-[[bench]]
-name = "bench"
-harness = false
+# Allow some common patterns
+module_name_repetitions = "allow"
+too_many_lines = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+missing_safety_doc = "allow"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
