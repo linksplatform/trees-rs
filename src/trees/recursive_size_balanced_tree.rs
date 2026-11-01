@@ -131,6 +131,20 @@ pub trait RecursiveSizeBalancedTree<T: LinkReference> {
     }
 
     /// Performs a left rotation and returns the new root.
+    ///
+    /// The caller must update the subtree root with the returned node, or use
+    /// [`left_rotate`](Self::left_rotate) to update it in place. Ignoring the
+    /// return value leaves the old root pointing at only part of the tree.
+    ///
+    /// ```compile_fail
+    /// #![deny(unused_must_use)]
+    /// use platform_trees::RecursiveSizeBalancedTree;
+    ///
+    /// unsafe fn rotate(tree: &mut impl RecursiveSizeBalancedTree<usize>, root: usize) {
+    ///     unsafe { tree.left_rotate_core(root); }
+    /// }
+    /// ```
+    #[must_use = "use the returned node to update the subtree root"]
     unsafe fn left_rotate_core(&mut self, root: T) -> T {
         unsafe {
             let right = self.get_right(root);
@@ -151,6 +165,20 @@ pub trait RecursiveSizeBalancedTree<T: LinkReference> {
     }
 
     /// Performs a right rotation and returns the new root.
+    ///
+    /// The caller must update the subtree root with the returned node, or use
+    /// [`right_rotate`](Self::right_rotate) to update it in place. Ignoring the
+    /// return value leaves the old root pointing at only part of the tree.
+    ///
+    /// ```compile_fail
+    /// #![deny(unused_must_use)]
+    /// use platform_trees::RecursiveSizeBalancedTree;
+    ///
+    /// unsafe fn rotate(tree: &mut impl RecursiveSizeBalancedTree<usize>, root: usize) {
+    ///     unsafe { tree.right_rotate_core(root); }
+    /// }
+    /// ```
+    #[must_use = "use the returned node to update the subtree root"]
     unsafe fn right_rotate_core(&mut self, root: T) -> T {
         unsafe {
             let left = self.get_left(root);
